@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>台灣地址 3+3 碼郵遞區號批次補全</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  body { font-family: "Microsoft JhengHei", "Noto Sans TC", system-ui, sans-serif; }
+  #dropZone.dragover { background: #ecfdf5; border-color: #059669; }
+  #log { font-family: Consolas, "Microsoft JhengHei", monospace; }
+  .hidden { display: none; }
+</style>
+</head>
+<body class="bg-slate-100 min-h-screen py-8 px-4">
+<div class="max-w-6xl mx-auto space-y-6">
+
+  <header class="bg-white rounded-2xl shadow p-6">
+    <h1 class="text-2xl font-bold text-slate-800">台灣地址 3+3 碼郵遞區號批次補全</h1>
+    <p class="text-sm text-slate-500 mt-1">上傳 Excel → 按一個按鈕 → 依地址自動查詢 6 碼郵遞區號（同時查 zip5.5432.tw 與 ziptw.com 兩個公開來源交叉比對）。查不到的地址可一鍵開啟中華郵政官方查詢頁補查，再貼回表格。不產生任何推測值。</p>
+  </header>
+
+  <section class="bg-white rounded-2xl shadow p-6 space-y-5">
+    <div id="dropZone" class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center cursor-pointer transition-colors hover:bg-slate-50">
+      <p class="text-slate-600 text-lg">將 Excel 檔拖曳到這裡，或 <span class="text-emerald-600 underline">點擊選擇檔案</span></p>
+      <p class="text-xs text-slate-400 mt-1">.xlsx / .xlsm 直接寫回原檔並保留原有格式；.xls / .csv / .ods 也可讀取</p>
+      <p id="fileName" class="mt-2 text-sm text-emerald-700 font-semibold"></p>
+      <input id="fileInput" type="file" accept=".xlsx,.xlsm,.xltx,.xltm,.xls,.xlsb,.csv,.ods" class="hidden">
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-4">
+      <div id="sheetWrap" class="hidden">
+        <label class="block text-sm font-semibold text-slate-700 mb-1">工作表</label>
+        <select id="sheetSel" class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white"></select>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-slate-700 mb-1">地址欄位（已自動辨識）</label>
+        <select id="colSelect" disabled class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white disabled:bg-slate-100"><option>請先上傳檔案</option></select>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-slate-700 mb-1">郵遞區號填入欄位（已自動辨識）</label>
+        <select id="zipColSelect" disabled class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white disabled:bg-slate-100"><option>請先上傳檔案</option></select>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-600">
+      <label class="inline-flex items-center gap-1"><input id="keepExisting" type="checkbox" checked> 原本已有 6 碼的保留不查</label>
+      <label class="inline-flex items-center gap-1">每次查詢間隔 <input id="delay" type="number" min="1000" step="500" value="2000" class="w-20 border border-slate-300 rounded px-2 py-0.5"> 毫秒</label>
+      <span class="text-xs text-slate-400">（來源網站要求查詢間留緩衝；zip5 每日上限 2000 次、ziptw 每日 100 次，達上限會自動改用另一來源）</span>
+    </div>
+
+    <div class="grid grid-cols-4 gap-3">
+      <button id="btnStart" disabled class="col-span-3 py-4 rounded-xl text-lg font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed shadow">開始 6 碼精準補全</button>
+      <button id="btnStop" disabled class="py-4 rounded-xl font-semibold text-red-600 border border-red-300 hover:bg-red-50 disabled:text-slate-300 disabled:border-slate-200 disabled:hover:bg-white">停止</button>
+    </div>
+    <div>
+      <div class="flex justify-between text-sm text-slate-600 mb-1"><span id="statusText">請上傳 Excel 檔案。</span><span id="pctText">0%</span></div>
+      <div class="w-full h-4 bg-slate-200 rounded-full overflow-hidden"><div id="progressBar" class="h-full bg-emerald-500 transition-all duration-200" style="width:0%"></div></div>
+    </div>
+    <details>
+      <summary class="text-sm text-slate-500 cursor-pointer">處理明細</summary>
+      <div id="log" class="mt-2 h-48 overflow-y-auto bg-slate-900 text-xs rounded-xl p-3 space-y-0.5"></div>
+    </details>
+  </section>
+
+  <section class="bg-white rounded-2xl shadow p-6 space-y-4">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <h2 class="text-lg font-bold text-slate-800">即時成果預覽</h2>
+      <div class="flex flex-wrap items-center gap-2 text-sm">
+        <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800">成功 <b id="cOk">0</b></span>
+        <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-800">需覆核 <b id="cReview">0</b></span>
+        <span class="px-3 py-1 rounded-full bg-sky-100 text-sky-800">手動補填 <b id="cManual">0</b></span>
+        <span class="px-3 py-1 rounded-full bg-red-100 text-red-800">查無結果 <b id="cFail">0</b></span>
+        <select id="filterSel" class="border border-slate-300 rounded-lg px-2 py-1"><option value="all">顯示全部</option><option value="todo">只顯示待補查／覆核</option></select>
+      </div>
+    </div>
+    <div class="overflow-auto max-h-[600px] border border-slate-200 rounded-xl">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-100 sticky top-0 z-10 text-left text-slate-700">
+          <tr><th class="px-3 py-2 w-14">列</th><th class="px-3 py-2">原始地址</th><th class="px-3 py-2">標準化地址（送查用）</th><th class="px-3 py-2 w-36">3+3碼郵遞區號</th><th class="px-3 py-2 w-60">狀態／操作</th></tr>
+        </thead>
+        <tbody id="tbody"><tr><td colspan="5" class="px-3 py-8 text-center text-slate-400">尚無資料</td></tr></tbody>
+      </table>
+    </div>
+    <p class="text-xs text-slate-500">郵遞區號欄可直接點擊修改（6 位數字）。下載時：郵遞區號寫入指定欄，右側新增「標準化地址」「郵遞區號查詢狀態」兩欄；原有資料與格式不變。</p>
+    <button id="btnDownload" disabled class="w-full py-4 rounded-xl text-lg font-bold text-white bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed shadow">下載處理結果 (Excel)</button>
+  </section>
+
+  <footer class="text-xs text-slate-400 text-center leading-relaxed">
+    郵遞區號查詢來源：<a class="underline" href="https://zip5.5432.tw" target="_blank" rel="noopener">https://zip5.5432.tw</a>、<a class="underline" href="https://ziptw.com" target="_blank" rel="noopener">https://ziptw.com</a>（兩站皆以中華郵政資料為基礎，非官方網站）。
+    正式寄件請以 <a class="underline" href="https://www.post.gov.tw/post/internet/Postal/index.jsp?ID=208" target="_blank" rel="noopener">中華郵政 3+3 郵遞區號查詢</a> 為準。
+  </footer>
+</div>
+
+<div id="modal" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl p-6 space-y-4">
+    <div class="flex justify-between items-start">
+      <div>
+        <h3 class="text-lg font-bold text-slate-800">官方網頁手動補查</h3>
+        <p class="text-xs text-slate-500">已在新分頁開啟中華郵政 3+3 郵遞區號查詢頁。依下列欄位選擇縣市、區，輸入路名與門牌，查到後把 6 碼貼到下方。</p>
+      </div>
+      <button id="modalClose" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+    </div>
+    <div class="text-sm bg-slate-50 rounded-lg p-3">原始地址：<b id="mOrig"></b><div id="mNote" class="text-xs text-slate-500 mt-1"></div></div>
+    <div id="mFields" class="space-y-2"></div>
+    <div class="border-t pt-4">
+      <label class="block text-sm font-semibold text-slate-700 mb-1">官方查到的 3+3 郵遞區號</label>
+      <div class="flex gap-2">
+        <input id="mZip" inputmode="numeric" maxlength="6" placeholder="例：406042" class="flex-1 border border-slate-300 rounded-lg px-3 py-2 font-mono text-lg tracking-widest">
+        <button id="mSave" class="px-5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold">填入</button>
+      </div>
+      <p id="mErr" class="text-xs text-red-600 mt-1"></p>
+    </div>
+    <div class="flex justify-between text-sm">
+      <button id="mReopen" class="text-blue-600 underline">再次開啟官方網頁</button>
+      <button id="mNext" class="text-slate-600 underline">填入並前往下一筆待補查 →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== xlsx 讀寫（瀏覽器原生 API，無外部套件；寫回原檔時保留原有格式） ===== */
+const utf8e = new TextEncoder(), utf8d = new TextDecoder('utf-8');
+const CRC_T = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(u8) { let c = 0xFFFFFFFF; for (let i = 0; i < u8.length; i++) c = CRC_T[(c ^ u8[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+async function streamBytes(u8, ts) { return new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(ts)).arrayBuffer()); }
+const inflateRaw = u8 => streamBytes(u8, new DecompressionStream('deflate-raw'));
+const deflateRaw = u8 => streamBytes(u8, new CompressionStream('deflate-raw'));
+const isZip = u8 => u8.length > 4 && u8[0] === 0x50 && u8[1] === 0x4B && u8[2] === 3 && u8[3] === 4;
+
+function readZip(u8) {
+  const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+  let eocd = -1;
+  for (let i = u8.length - 22; i >= Math.max(0, u8.length - 65558); i--) if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+  if (eocd < 0) throw new Error('檔案不是有效的 xlsx（ZIP 結構損毀）');
+  const n = dv.getUint16(eocd + 10, true); let off = dv.getUint32(eocd + 16, true);
+  const entries = [];
+  for (let k = 0; k < n; k++) {
+    if (dv.getUint32(off, true) !== 0x02014b50) throw new Error('xlsx 目錄損毀');
+    const method = dv.getUint16(off + 10, true), crc = dv.getUint32(off + 16, true);
+    const csize = dv.getUint32(off + 20, true), usize = dv.getUint32(off + 24, true);
+    const nl = dv.getUint16(off + 28, true), el = dv.getUint16(off + 30, true), cl = dv.getUint16(off + 32, true);
+    const lho = dv.getUint32(off + 42, true);
+    const name = utf8d.decode(u8.subarray(off + 46, off + 46 + nl));
+    const ds = lho + 30 + dv.getUint16(lho + 26, true) + dv.getUint16(lho + 28, true);
+    entries.push({ name, method, crc, csize, usize, raw: u8.subarray(ds, ds + csize) });
+    off += 46 + nl + el + cl;
+  }
+  return entries;
+}
+async function zipData(e) { if (e.method === 0) return e.raw; if (e.method === 8) return inflateRaw(e.raw); throw new Error('不支援的壓縮方式 ' + e.method); }
+async function zipText(entries, name) { const e = entries.find(x => x.name === name); return e ? utf8d.decode(await zipData(e)) : null; }
+async function writeZip(files) {   // files: [{name, data}] 或 [{name, entry}]（原樣沿用）
+  const parts = [], cd = []; let off = 0;
+  for (const f of files) {
+    let method, crc, csize, usize, raw;
+    if (f.entry) ({ method, crc, csize, usize, raw } = f.entry);
+    else { usize = f.data.length; crc = crc32(f.data); raw = await deflateRaw(f.data); method = 8; csize = raw.length; }
+    const nb = utf8e.encode(f.name);
+    const lh = new Uint8Array(30 + nb.length), lv = new DataView(lh.buffer);
+    lv.setUint32(0, 0x04034b50, true); lv.setUint16(4, 20, true); lv.setUint16(6, 0x800, true); lv.setUint16(8, method, true);
+    lv.setUint16(12, 0x21, true); lv.setUint32(14, crc, true); lv.setUint32(18, csize, true); lv.setUint32(22, usize, true); lv.setUint16(26, nb.length, true);
+    lh.set(nb, 30);
+    const ch = new Uint8Array(46 + nb.length), cv = new DataView(ch.buffer);
+    cv.setUint32(0, 0x02014b50, true); cv.setUint16(4, 20, true); cv.setUint16(6, 20, true); cv.setUint16(8, 0x800, true); cv.setUint16(10, method, true);
+    cv.setUint16(14, 0x21, true); cv.setUint32(16, crc, true); cv.setUint32(20, csize, true); cv.setUint32(24, usize, true); cv.setUint16(28, nb.length, true);
+    cv.setUint32(42, off, true); ch.set(nb, 46);
+    parts.push(lh, raw); cd.push(ch); off += lh.length + raw.length;
+  }
+  const cds = cd.reduce((a, b) => a + b.length, 0);
+  const e = new Uint8Array(22), ev = new DataView(e.buffer);
+  ev.setUint32(0, 0x06054b50, true); ev.setUint16(8, files.length, true); ev.setUint16(10, files.length, true); ev.setUint32(12, cds, true); ev.setUint32(16, off, true);
+  return new Blob([...parts, ...cd, e], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+
+const XML_ENT = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
+const xmlDec = s => String(s).replace(/&(#x[0-9a-f]+|#\d+|\w+);/gi, (m, e) => e[0] === '#' ? String.fromCodePoint(/^#x/i.test(e) ? parseInt(e.slice(2), 16) : +e.slice(1)) : (XML_ENT[e] ?? m));
+const xmlEsc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
+function attrs(s) { const o = {}; String(s).replace(/([\w:.-]+)\s*=\s*("([^"]*)"|'([^']*)')/g, (m, k, _, a, b) => { o[k] = xmlDec(a ?? b); }); return o; }
+function colIdx(ref) { let c = 0; for (const ch of ref) { const k = ch.charCodeAt(0); if (k >= 65 && k <= 90) c = c * 26 + k - 64; else break; } return c - 1; }
+function colName(c) { let s = ''; c++; while (c > 0) { const m = (c - 1) % 26; s = String.fromCharCode(65 + m) + s; c = Math.floor((c - 1) / 26); } return s; }
+function numStr(v) { const n = Number(v); return !isFinite(n) ? String(v) : Number.isInteger(n) ? String(n) : String(+n.toPrecision(15)); }
+function siText(inner) { let s = ''; inner.replace(/<rPh\b[\s\S]*?<\/rPh>/g, '').replace(/<t\b[^>]*>([\s\S]*?)<\/t>/g, (m, t) => { s += t; return ''; }); return xmlDec(s); }
+function relTarget(base, t) { if (t.startsWith('/')) return t.slice(1); const out = []; for (const p of (base + t).split('/')) { if (p === '..') out.pop(); else if (p !== '.') out.push(p); } return out.join('/'); }
+
+/* 讀取 xlsx／xlsm：回傳 {entries, sheets:[{name, path, aoa}]}，aoa 以絕對列欄索引 */
+async function readXlsx(u8) {
+  const entries = readZip(u8);
+  const wb = await zipText(entries, 'xl/workbook.xml');
+  if (!wb) throw new Error('找不到 xl/workbook.xml');
+  const rels = {};
+  for (const m of (await zipText(entries, 'xl/_rels/workbook.xml.rels') || '').matchAll(/<Relationship\b([^>]*?)\/?>/g)) { const a = attrs(m[1]); rels[a.Id] = a.Target; }
+  const sst = [];
+  const ss = await zipText(entries, 'xl/sharedStrings.xml');
+  if (ss) ss.replace(/<si>([\s\S]*?)<\/si>|<si\/>/g, (m, inner) => { sst.push(inner ? siText(inner) : ''); return ''; });
+  const sheets = [];
+  for (const m of wb.matchAll(/<(?:\w+:)?sheet\b([^>]*?)\/?>/g)) {
+    const a = attrs(m[1]); const rid = Object.keys(a).find(k => /(^|:)id$/.test(k));
+    if (!rels[a[rid]]) continue;
+    const path = relTarget('xl/', rels[a[rid]]);
+    const xml = await zipText(entries, path);
+    if (!xml || !/<(?:\w+:)?worksheet\b/.test(xml)) continue;
+    sheets.push({ name: a.name, path, aoa: sheetXmlToAOA(xml, sst) });
+  }
+  return { entries, sheets };
+}
+function sheetXmlToAOA(xml, sst) {
+  const aoa = []; let rAuto = 0;
+  const sd = /<sheetData\b[^>]*>([\s\S]*?)<\/sheetData>/.exec(xml); if (!sd) return aoa;
+  for (const rm of sd[1].matchAll(/<row\b([^>]*?)(?:\/>|>([\s\S]*?)<\/row>)/g)) {
+    const ra = attrs(rm[1]); const r = ra.r ? +ra.r - 1 : rAuto; rAuto = r + 1;
+    if (!rm[2]) continue; let cAuto = 0;
+    for (const cm of rm[2].matchAll(/<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g)) {
+      const ca = attrs(cm[1]); const c = ca.r ? colIdx(ca.r) : cAuto; cAuto = c + 1;
+      const inner = cm[2] || ''; const vm = /<v>([\s\S]*?)<\/v>/.exec(inner); let v = '';
+      if (ca.t === 's') v = vm ? (sst[+vm[1]] ?? '') : '';
+      else if (ca.t === 'inlineStr') { const im = /<is>([\s\S]*?)<\/is>/.exec(inner); v = im ? siText(im[1]) : ''; }
+      else if (ca.t === 'str' || ca.t === 'e') v = vm ? xmlDec(vm[1]) : '';
+      else if (ca.t === 'b') v = vm ? (vm[1] === '1' ? 'TRUE' : 'FALSE') : '';
+      else v = vm ? numStr(xmlDec(vm[1])) : '';
+      if (v === '') continue;
+      (aoa[r] || (aoa[r] = []))[c] = v;
+    }
+  }
+  for (let i = 0; i < aoa.length; i++) { if (!aoa[i]) aoa[i] = []; for (let j = 0; j < aoa[i].length; j++) if (aoa[i][j] == null) aoa[i][j] = ''; }
+  return aoa;
+}
+
+/* 將 edits（Map 列 → Map 欄 → 文字）寫入工作表 XML，保留原儲存格樣式 */
+function patchSheetXml(xml, edits, headerStyleRow = -1) {
+  const sdm = /<sheetData\b([^>]*)\/>|<sheetData\b([^>]*)>([\s\S]*?)<\/sheetData>/.exec(xml);
+  if (!sdm) throw new Error('工作表缺少 sheetData');
+  const sdAttr = sdm[1] ?? sdm[2] ?? '', inner = sdm[3] ?? '';
+  const rows = []; let rAuto = 0;
+  for (const rm of inner.matchAll(/<row\b([^>]*?)(?:\/>|>([\s\S]*?)<\/row>)/g)) {
+    const a = attrs(rm[1]); const r = a.r ? +a.r - 1 : rAuto; rAuto = r + 1;
+    rows.push({ r, attr: rm[1], inner: rm[2] || '', raw: rm[0] });
+  }
+  const byR = new Map(rows.map(x => [x.r, x]));
+  // 欄預設樣式（<cols>），新建儲存格沿用，避免改變外觀
+  const colStyle = [];
+  for (const m of xml.matchAll(/<col\b([^>]*?)\/?>/g)) { const a = attrs(m[1]); if (a.style != null) for (let c = +a.min - 1; c < +a.max && c < 16384; c++) colStyle[c] = a.style; }
+  let maxR = 0, maxC = 0;
+  for (const [r, cols] of edits) {
+    let row = byR.get(r);
+    if (!row) { row = { r, attr: ` r="${r + 1}"`, inner: '', raw: null }; rows.push(row); byR.set(r, row); }
+    const cells = []; let cAuto = 0;
+    for (const cm of row.inner.matchAll(/<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g)) {
+      const a = attrs(cm[1]); const c = a.r ? colIdx(a.r) : cAuto; cAuto = c + 1;
+      cells.push({ c, s: a.s, xml: a.r ? cm[0] : cm[0].replace(/^<c\b/, `<c r="${colName(c)}${r + 1}"`) });
+    }
+    for (const [c, v] of cols) {
+      const ref = colName(c) + (r + 1); const i = cells.findIndex(x => x.c === c);
+      const ra = attrs(row.attr);
+      let s = i >= 0 ? cells[i].s : (ra.customFormat === '1' && ra.s != null ? ra.s : colStyle[c]);
+      if (s == null && r === headerStyleRow) { const left = cells.filter(x => x.c < c && x.s != null).pop(); if (left) s = left.s; }
+      const x = `<c r="${ref}"${s != null ? ` s="${s}"` : ''} t="inlineStr"><is><t xml:space="preserve">${xmlEsc(v)}</t></is></c>`;
+      if (i >= 0) cells[i] = { c, s, xml: x }; else cells.push({ c, s, xml: x });
+      maxC = Math.max(maxC, c);
+    }
+    cells.sort((a, b) => a.c - b.c);
+    row.inner = cells.map(x => x.xml).join('');
+    row.attr = row.attr.replace(/\s+spans="[^"]*"/, '');
+    row.raw = null; maxR = Math.max(maxR, r);
+  }
+  rows.sort((a, b) => a.r - b.r);
+  const body = rows.map(x => x.raw ?? `<row${x.attr}>${x.inner}</row>`).join('');
+  let out = xml.slice(0, sdm.index) + `<sheetData${sdAttr}>${body}</sheetData>` + xml.slice(sdm.index + sdm[0].length);
+  out = out.replace(/<dimension\b[^>]*\bref="([^"]*)"[^>]*\/>/, (m, ref) => {
+    const [a, b] = ref.split(':'); const e = /^([A-Z]+)(\d+)$/.exec(b || a); const s = /^([A-Z]+)(\d+)$/.exec(a);
+    if (!e || !s) return m;
+    return m.replace(/ref="[^"]*"/, `ref="${a}:${colName(Math.max(colIdx(e[1]), maxC))}${Math.max(+e[2], maxR + 1)}"`);
+  });
+  return out;
+}
+async function writeXlsxPatched(book, path, edits, headerRow = -1) {
+  const files = [];
+  for (const e of book.entries) {
+    if (e.name === path) files.push({ name: e.name, data: utf8e.encode(patchSheetXml(utf8d.decode(await zipData(e)), edits, headerRow)) });
+    else files.push({ name: e.name, entry: e });
+  }
+  return writeZip(files);
+}
+/* ===== 地址清理與郵遞區號查詢 ===== */
+const DISTRICTS = {
+  "臺北市":"中正區,大同區,中山區,松山區,大安區,萬華區,信義區,士林區,北投區,內湖區,南港區,文山區",
+  "基隆市":"仁愛區,信義區,中正區,中山區,安樂區,暖暖區,七堵區",
+  "新北市":"萬里區,金山區,板橋區,汐止區,深坑區,石碇區,瑞芳區,平溪區,雙溪區,貢寮區,新店區,坪林區,烏來區,永和區,中和區,土城區,三峽區,樹林區,鶯歌區,三重區,新莊區,泰山區,林口區,蘆洲區,五股區,八里區,淡水區,三芝區,石門區",
+  "連江縣":"南竿鄉,北竿鄉,莒光鄉,東引鄉",
+  "宜蘭縣":"宜蘭市,頭城鎮,礁溪鄉,壯圍鄉,員山鄉,羅東鎮,三星鄉,大同鄉,五結鄉,冬山鄉,蘇澳鎮,南澳鄉",
+  "新竹市":"東區,北區,香山區",
+  "新竹縣":"竹北市,湖口鄉,新豐鄉,新埔鎮,關西鎮,芎林鄉,寶山鄉,竹東鎮,五峰鄉,橫山鄉,尖石鄉,北埔鄉,峨眉鄉",
+  "桃園市":"中壢區,平鎮區,龍潭區,楊梅區,新屋區,觀音區,桃園區,龜山區,八德區,大溪區,復興區,大園區,蘆竹區",
+  "苗栗縣":"竹南鎮,頭份市,三灣鄉,南庄鄉,獅潭鄉,後龍鎮,通霄鎮,苑裡鎮,苗栗市,造橋鄉,頭屋鄉,公館鄉,大湖鄉,泰安鄉,銅鑼鄉,三義鄉,西湖鄉,卓蘭鎮",
+  "臺中市":"中區,東區,南區,西區,北區,北屯區,西屯區,南屯區,太平區,大里區,霧峰區,烏日區,豐原區,后里區,石岡區,東勢區,和平區,新社區,潭子區,大雅區,神岡區,大肚區,沙鹿區,龍井區,梧棲區,清水區,大甲區,外埔區,大安區",
+  "彰化縣":"彰化市,芬園鄉,花壇鄉,秀水鄉,鹿港鎮,福興鄉,線西鄉,和美鎮,伸港鄉,員林市,社頭鄉,永靖鄉,埔心鄉,溪湖鎮,大村鄉,埔鹽鄉,田中鎮,北斗鎮,田尾鄉,埤頭鄉,溪州鄉,竹塘鄉,二林鎮,大城鄉,芳苑鄉,二水鄉",
+  "南投縣":"南投市,中寮鄉,草屯鎮,國姓鄉,埔里鎮,仁愛鄉,名間鄉,集集鎮,水里鄉,魚池鄉,信義鄉,竹山鎮,鹿谷鄉",
+  "嘉義市":"東區,西區",
+  "嘉義縣":"番路鄉,梅山鄉,竹崎鄉,阿里山鄉,中埔鄉,大埔鄉,水上鄉,鹿草鄉,太保市,朴子市,東石鄉,六腳鄉,新港鄉,民雄鄉,大林鎮,溪口鄉,義竹鄉,布袋鎮",
+  "雲林縣":"斗南鎮,大埤鄉,虎尾鎮,土庫鎮,褒忠鄉,東勢鄉,臺西鄉,崙背鄉,麥寮鄉,斗六市,林內鄉,古坑鄉,莿桐鄉,西螺鎮,二崙鄉,北港鎮,水林鄉,口湖鄉,四湖鄉,元長鄉",
+  "臺南市":"中西區,東區,南區,北區,安平區,安南區,永康區,歸仁區,新化區,左鎮區,玉井區,楠西區,南化區,仁德區,關廟區,龍崎區,官田區,麻豆區,佳里區,西港區,七股區,將軍區,學甲區,北門區,新營區,後壁區,白河區,東山區,六甲區,下營區,柳營區,鹽水區,善化區,大內區,山上區,新市區,安定區",
+  "高雄市":"新興區,前金區,苓雅區,鹽埕區,鼓山區,旗津區,前鎮區,三民區,楠梓區,小港區,左營區,仁武區,大社區,岡山區,路竹區,阿蓮區,田寮區,燕巢區,橋頭區,梓官區,彌陀區,永安區,湖內區,鳳山區,大寮區,林園區,鳥松區,大樹區,旗山區,美濃區,六龜區,內門區,杉林區,甲仙區,桃源區,那瑪夏區,茂林區,茄萣區",
+  "屏東縣":"屏東市,三地門鄉,霧臺鄉,瑪家鄉,九如鄉,里港鄉,高樹鄉,鹽埔鄉,長治鄉,麟洛鄉,竹田鄉,內埔鄉,萬丹鄉,潮州鎮,泰武鄉,來義鄉,萬巒鄉,崁頂鄉,新埤鄉,南州鄉,林邊鄉,東港鎮,琉球鄉,佳冬鄉,新園鄉,枋寮鄉,枋山鄉,春日鄉,獅子鄉,車城鄉,牡丹鄉,恆春鎮,滿州鄉",
+  "臺東縣":"臺東市,綠島鄉,蘭嶼鄉,延平鄉,卑南鄉,鹿野鄉,關山鎮,海端鄉,池上鄉,東河鄉,成功鎮,長濱鄉,太麻里鄉,金峰鄉,大武鄉,達仁鄉",
+  "花蓮縣":"花蓮市,新城鄉,秀林鄉,吉安鄉,壽豐鄉,鳳林鎮,光復鄉,豐濱鄉,瑞穗鄉,萬榮鄉,玉里鎮,卓溪鄉,富里鄉",
+  "澎湖縣":"馬公市,西嶼鄉,望安鄉,七美鄉,白沙鄉,湖西鄉",
+  "金門縣":"金沙鎮,金湖鎮,金寧鄉,金城鎮,烈嶼鄉,烏坵鄉"
+};
+for (const k in DISTRICTS) DISTRICTS[k] = DISTRICTS[k].split(',').sort((a, b) => b.length - a.length);
+const CITY_ALIAS = { "臺北縣": "新北市", "桃園縣": "桃園市", "臺中縣": "臺中市", "臺南縣": "臺南市", "高雄縣": "高雄市" };
+const CITY_NAMES = [...Object.keys(DISTRICTS), ...Object.keys(CITY_ALIAS)];
+
+const CN = { '零': 0, '〇': 0, '○': 0, '一': 1, '二': 2, '兩': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9 };
+function cnToNum(s) {
+  if (/[十百千]/.test(s)) {
+    let t = 0, c = 0;
+    for (const ch of s) {
+      if (ch in CN) c = CN[ch];
+      else if (ch === '十') { t += (c || 1) * 10; c = 0; }
+      else if (ch === '百') { t += (c || 1) * 100; c = 0; }
+      else if (ch === '千') { t += (c || 1) * 1000; c = 0; }
+    }
+    return String(t + c);
+  }
+  return [...s].map(ch => CN[ch]).join('');
+}
+const CNN = '[零〇○一二兩三四五六七八九十百千]+';
+/* 基本正規化：全形→半形、去空白、台→臺、門牌中文數字→阿拉伯數字（不動「五股」「二林」等地名） */
+function norm(raw) {
+  let s = String(raw ?? '');
+  s = s.replace(/[\uFF01-\uFF5E]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+  s = s.replace(/[\s\u3000]+/g, '').replace(/台/g, '臺');
+  s = s.replace(new RegExp(CNN + '(?=[號巷弄樓鄰之])', 'g'), m => cnToNum(m));
+  s = s.replace(new RegExp('之' + CNN, 'g'), m => '之' + cnToNum(m.slice(1)));
+  return s;
+}
+
+/* 拆解地址：{city, district, road, section, lane, alley, number, floor, rest} */
+function splitAddr(raw) {
+  let s = norm(raw).replace(/^\d{3,6}/, '').replace(/^(中華民國|臺灣省|臺灣)/, '');
+  s = s.replace(/[（(][^）)]*[）)]/g, '');                         // 括號註記
+  s = s.replace(/(\d)[-－—‐~～](\d)/g, '$1之$2');                  // 248-37 → 248之37
+  s = s.replace(/(\d+)[Ff](?![a-z])/g, '$1樓');                      // 4F → 4樓
+  s = s.replace(/樓[-－—‐](\d)/g, '樓之$1');                        // 8樓-1 → 8樓之1
+  const o = { city: '', district: '', road: '', section: '', lane: '', alley: '', number: '', floor: '', rest: '' };
+  for (const c of CITY_NAMES) if (s.startsWith(c)) { o.city = CITY_ALIAS[c] || c; s = s.slice(c.length); break; }
+  if (o.city) {
+    const ds = DISTRICTS[o.city];
+    let d = ds.find(x => s.startsWith(x)), cut = d ? d.length : 0;
+    if (!d) {                                                         // 舊制：板橋市→板橋區、頭份鎮→頭份市
+      d = ds.find(x => x.length >= 3 && s.startsWith(x.slice(0, -1)) && /[區鄉鎮市]/.test(s.charAt(x.length - 1)));
+      if (d) cut = d.length;
+    }
+    if (!d) {                                                         // 五股工業區 → 五股區
+      const m = /^(.{2,3}?)(?:工業區|科學園區)/.exec(s);
+      if (m) { d = ds.find(x => x.slice(0, -1) === m[1]); if (d) cut = m[0].length; }
+    }
+    if (d) { o.district = d; s = s.slice(cut); }
+  }
+  // 村里、鄰（後面接得到路街時才移除，避免把「復興村」這類路名也去掉）
+  let m = /^[^\d路街道段巷弄號]{1,4}?[村里](\d+鄰)?/.exec(s);
+  if (m && /(路|街|大道)/.test(s.slice(m[0].length))) s = s.slice(m[0].length);
+  s = s.replace(/^\d+鄰/, '');
+  // 工業區、園區等前綴地名（後面接得到路街時才移除）
+  m = /^[^\d]{1,8}?(工業區|科學園區|工業園區)(?=[^\d]*?(路|街|大道))/.exec(s);
+  if (m) s = s.slice(m[0].length);
+  // 路街
+  if ((m = /^(.+?(?:路|街|大道))/.exec(s)) && !/\d/.test(m[1])) { o.road = m[1]; s = s.slice(m[1].length); }
+  else if ((m = /^([^\d]+?)(?=\d)/.exec(s))) { o.road = m[1]; s = s.slice(m[1].length); }   // 復興村、大城北等以地名為路名
+  if ((m = new RegExp('^((?:' + CNN + '|\\d+|[東西南北])段)').exec(s))) { o.section = m[1].replace(/^\d+/, d => '〇一二三四五六七八九'[+d] || d); s = s.slice(m[1].length); }
+  if ((m = /^(\d+巷)/.exec(s))) { o.lane = m[1]; s = s.slice(m[1].length); }
+  if ((m = /^(\d+弄)/.exec(s))) { o.alley = m[1]; s = s.slice(m[1].length); }
+  if ((m = /^(\d+(?:之\d+)?號(?:之\d+)?)/.exec(s))) { o.number = m[1]; s = s.slice(m[1].length); }
+  if ((m = /((?:地下)?\d+樓(?:之\d+)?)/.exec(s))) o.floor = m[1];
+  o.rest = s;
+  return o;
+}
+const base = o => o.city + o.district + o.road + o.section + o.lane + o.alley + o.number;
+/* 送查的地址候選：先含樓層，再不含樓層 */
+function queryVariants(raw) {
+  const o = splitAddr(raw);
+  const cleaned = norm(raw).replace(/^\d{3,6}/, '').replace(/[（(][^）)]*[）)]/g, '').replace(/(\d)[-－—‐~～](\d)/g, '$1之$2').replace(/(\d+)[Ff](?![a-z])/g, '$1樓');
+  const list = [];
+  if (o.number) {
+    if (o.floor) list.push({ q: base(o) + o.floor, floorless: false });
+    list.push({ q: base(o), floorless: !!o.floor });
+  }
+  list.push({ q: cleaned, floorless: false });          // 最後以清理後的原地址再試一次
+  return { parts: o, variants: list.filter((v, i, a) => v.q && a.findIndex(x => x.q === v.q) === i) };
+}
+/* ===== 公開 API ===== */
+async function fetchJSON(url, timeoutMs = 15000) {
+  const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const r = await fetch(url, { signal: ctrl.signal });
+    if (r.status === 429) { const e = new Error('已達每日查詢上限'); e.limit = true; throw e; }
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return await r.json();
+  } catch (e) {
+    if (e.limit) throw e;
+    throw new Error(e.name === 'AbortError' ? '逾時' : /fetch/i.test(e.message) ? '連線失敗' : e.message);
+  } finally { clearTimeout(t); }
+}
+const SOURCES = {
+  zip5: { label: 'zip5.5432.tw', async q(addr) { const j = await fetchJSON('https://zip5.5432.tw/zip5json.py?adrs=' + encodeURIComponent(addr)); const z = String(j.zipcode6 ?? '').trim(); return /^\d{6}$/.test(z) ? z : null; } },
+  ziptw: { label: 'ziptw.com', async q(addr) { const j = await fetchJSON('https://ziptw.com/api/zipcode?address=' + encodeURIComponent(addr)); const z = String(j.zipcode_33 ?? '').trim(); return /^\d{6}$/.test(z) ? z : null; } }
+};
+/* 查一筆：依序試各查詢變體；兩來源一致→成功；只有一個來源有結果→成功；兩來源不同→留空待確認 */
+async function lookupOne(raw, ctx) {
+  const { parts, variants } = queryVariants(raw);
+  const errors = [];
+  for (let vi = 0; vi < variants.length; vi++) {
+    const v = variants[vi]; const got = {};
+    const active = ctx.sources.filter(k => !ctx.disabled.has(k));
+    if (!active.length) break;
+    // 兩個來源同時查詢（各自仍維持間隔），查完再等待一個間隔
+    await Promise.all(active.map(async key => {
+      try { got[key] = await SOURCES[key].q(v.q); }
+      catch (e) { errors.push(`${SOURCES[key].label}：${e.message}`); if (e.limit) ctx.disabled.add(key); }
+    }));
+    await ctx.wait();
+    const vals = Object.entries(got).filter(([, z]) => z);
+    const uniq = [...new Set(vals.map(([, z]) => z))];
+    if (uniq.length > 1) return { zip: '', status: 'conflict', query: v.q, parts, candidates: vals.map(([k, z]) => ({ src: SOURCES[k].label, zip: z })), note: '兩個來源結果不同：' + vals.map(([k, z]) => `${SOURCES[k].label} ${z}`).join('、') };
+    if (uniq.length === 1) {
+      const srcs = vals.map(([k]) => SOURCES[k].label).join('、');
+      const both = vals.length > 1;
+      return { zip: uniq[0], status: v.floorless ? 'review' : 'ok', query: v.q, parts, candidates: [],
+        note: (both ? '兩個來源一致' : `單一來源：${srcs}`) + (v.floorless ? '｜已去除樓層查詢，部分大樓依樓層分碼，請覆核' : '') };
+    }
+  }
+  const noSrc = ctx.sources.every(k => ctx.disabled.has(k));
+  return { zip: '', status: 'fail', query: variants[0]?.q || '', parts, candidates: [],
+    note: noSrc ? '查詢來源皆已達上限' : errors.length ? '查詢失敗：' + [...new Set(errors)].join('；') : '兩個來源皆查無此地址' };
+}
+/* ===== 介面與流程 ===== */
+const OFFICIAL_URL = 'https://www.post.gov.tw/post/internet/Postal/index.jsp?ID=208';
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const STATUS = {
+  pending: ['等待處理', 'bg-slate-100 text-slate-500'],
+  ok: ['成功', 'bg-emerald-100 text-emerald-700'],
+  review: ['成功・請覆核', 'bg-amber-100 text-amber-800'],
+  conflict: ['來源不一致', 'bg-amber-100 text-amber-800'],
+  fail: ['查無結果', 'bg-red-100 text-red-700'],
+  manual: ['手動補填', 'bg-sky-100 text-sky-700']
+};
+let book = null, sheet = null, fileName = '', headerRow = 0, records = [], running = false, stopFlag = false, modalIdx = null;
+
+/* ---------- 上傳 ---------- */
+const dropZone = $('dropZone'), fileInput = $('fileInput');
+dropZone.addEventListener('click', () => fileInput.click());
+['dragenter', 'dragover'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.add('dragover'); }));
+['dragleave', 'drop'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.remove('dragover'); }));
+dropZone.addEventListener('drop', e => { if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); });
+fileInput.addEventListener('change', e => { if (e.target.files[0]) loadFile(e.target.files[0]); e.target.value = ''; });
+
+async function loadFile(file) {
+  if (running) { alert('處理中，請先停止再更換檔案。'); return; }
+  try {
+    const u8 = new Uint8Array(await file.arrayBuffer());
+    if (isZip(u8) && /\.(xlsx|xlsm|xltx|xltm)$/i.test(file.name)) {
+      book = await readXlsx(u8); book.kind = 'ooxml';
+    } else {
+      if (typeof XLSX === 'undefined') throw new Error('此格式需要 Excel 解析元件，請確認可連線至 cdn.jsdelivr.net，或先另存為 .xlsx');
+      const wb = XLSX.read(u8, { type: 'array' });
+      book = { kind: 'sheetjs', wb, sheets: wb.SheetNames.map(n => ({ name: n, aoa: XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1, defval: '', raw: false }) })) };
+    }
+    fileName = file.name;
+    const sel = $('sheetSel'); sel.innerHTML = '';
+    book.sheets.forEach((s, i) => sel.add(new Option(s.name, i)));
+    sel.value = 0;
+    $('sheetWrap').classList.toggle('hidden', book.sheets.length < 2);
+    selectSheet(0);
+    $('fileName').textContent = file.name;
+  } catch (e) {
+    book = null; $('btnStart').disabled = true;
+    setStatus('讀取失敗：' + e.message);
+  }
+}
+$('sheetSel').addEventListener('change', e => { if (!running) selectSheet(+e.target.value); });
+
+function selectSheet(i) {
+  sheet = book.sheets[i];
+  const aoa = sheet.aoa;
+  // 標題列：前 15 列中含「地址／郵遞區號」等字樣者優先，否則取非空欄位最多的一列
+  headerRow = -1; let best = -1;
+  for (let i = 0; i < Math.min(15, aoa.length); i++) {
+    const r = aoa[i] || []; const filled = r.filter(v => String(v).trim() !== '').length;
+    if (!filled) continue;
+    const kw = r.some(v => /地址|住址|address/i.test(String(v)) && String(v).length <= 20) ? 1000 : 0;
+    const looksData = r.some(v => /[縣市].*(路|街|大道|村|里).*\d/.test(norm(v))) ? -1000 : 0;
+    const score = kw + looksData + filled;
+    if (score > best) { best = score; headerRow = i; }
+  }
+  if (headerRow < 0) { setStatus('此工作表沒有資料。'); $('btnStart').disabled = true; return; }
+  const hdr = aoa[headerRow];
+  const width = Math.max(...aoa.map(r => r ? r.length : 0));
+  const addrSel = $('colSelect'), zipSel = $('zipColSelect');
+  addrSel.innerHTML = ''; zipSel.innerHTML = '';
+  zipSel.add(new Option('＋ 新增一欄「3+3碼郵遞區號」', -1));
+  for (let c = 0; c < width; c++) {
+    const label = `${colName(c)} 欄：${String(hdr[c] ?? '').trim() || '(無標題)'}`;
+    addrSel.add(new Option(label, c)); zipSel.add(new Option(label, c));
+  }
+  // 自動判斷：標題含「地址」或內容像台灣地址的欄位
+  let ac = hdr.findIndex(h => /地址|住址|address/i.test(String(h)) && !/英文|english/i.test(String(h)));
+  if (ac < 0) {
+    let best = -1, bestN = 0;
+    for (let c = 0; c < width; c++) {
+      const n = aoa.slice(headerRow + 1, headerRow + 200).filter(r => r && /[縣市].*(路|街|大道|村|里).*\d/.test(norm(r[c]))).length;
+      if (n > bestN) { bestN = n; best = c; }
+    }
+    ac = best >= 0 ? best : 0;
+  }
+  const zc = hdr.findIndex(h => /郵遞|郵編|zip|postal/i.test(String(h)));
+  addrSel.value = ac; zipSel.value = zc;
+  addrSel.disabled = zipSel.disabled = false;
+  buildRecords();
+}
+$('colSelect').addEventListener('change', () => { if (!running) buildRecords(); });
+$('zipColSelect').addEventListener('change', () => { if (!running) buildRecords(); });
+
+function buildRecords() {
+  const ac = +$('colSelect').value, zc = +$('zipColSelect').value;
+  records = [];
+  for (let i = headerRow + 1; i < sheet.aoa.length; i++) {
+    const row = sheet.aoa[i] || [];
+    const original = String(row[ac] ?? '').trim();
+    if (!original) continue;
+    const existing = zc >= 0 ? norm(row[zc]).replace(/\D/g, '') : '';
+    const qv = queryVariants(original);
+    records.push({ row: i, original, parts: qv.parts, std: qv.variants[0]?.q || '', zip: '', apiZip: '', existing,
+      status: 'pending', note: '', candidates: [] });
+  }
+  $('btnStart').disabled = !records.length;
+  $('btnDownload').disabled = true;
+  renderTable(); updateCounts();
+  const skip = $('keepExisting').checked ? records.filter(r => /^\d{6}$/.test(r.existing)).length : 0;
+  setStatus(records.length ? `共 ${records.length} 筆地址${skip ? `（其中 ${skip} 筆已有 6 碼，將保留不查）` : ''}，按「開始 6 碼精準補全」即可。` : '地址欄沒有資料，請改選地址欄位。');
+  setProgress(0);
+}
+$('keepExisting').addEventListener('change', () => { if (!running && sheet) buildRecords(); });
+
+/* ---------- 狀態顯示 ---------- */
+function setStatus(t) { $('statusText').textContent = t; }
+function setProgress(p) { const v = Math.round(p * 100); $('progressBar').style.width = v + '%'; $('pctText').textContent = v + '%'; }
+function log(msg, cls = 'text-slate-200') {
+  const d = document.createElement('div'); d.className = cls;
+  d.textContent = `[${new Date().toLocaleTimeString('zh-TW', { hour12: false })}] ${msg}`;
+  $('log').appendChild(d); $('log').scrollTop = $('log').scrollHeight;
+}
+function updateCounts() {
+  const n = s => records.filter(r => s.includes(r.status)).length;
+  $('cOk').textContent = n(['ok']); $('cReview').textContent = n(['review', 'conflict']);
+  $('cManual').textContent = n(['manual']); $('cFail').textContent = n(['fail']);
+  $('btnDownload').disabled = !records.some(r => r.status !== 'pending');
+}
+function statusHTML(r) {
+  const [label, cls] = STATUS[r.status];
+  let h = `<span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${cls}">${label}</span>`;
+  if (r.status === 'conflict') h += `<div class="mt-1 flex flex-wrap gap-1">${r.candidates.map(c => `<button data-act="pick" data-zip="${c.zip}" class="px-2 py-0.5 rounded border border-amber-400 text-amber-800 text-xs hover:bg-amber-50">採用 ${c.zip}</button>`).join('')}</div>`;
+  if (['fail', 'conflict', 'review'].includes(r.status))
+    h += `<button data-act="lookup" class="mt-1 block w-full px-2 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold">點我打開官方網頁手動補查</button>`;
+  if (r.note) h += `<div class="text-[11px] text-slate-500 mt-0.5 leading-snug">${esc(r.note)}</div>`;
+  return h;
+}
+function rowHTML(r, i) {
+  const bg = r.status === 'fail' ? 'bg-red-50/50' : ['review', 'conflict'].includes(r.status) ? 'bg-amber-50/50' : '';
+  return `<tr data-i="${i}" class="border-t border-slate-100 align-top ${bg}">
+    <td class="px-3 py-2 text-slate-400">${r.row + 1}</td>
+    <td class="px-3 py-2">${esc(r.original)}</td>
+    <td class="px-3 py-2 text-slate-600">${esc(r.std)}</td>
+    <td class="px-3 py-2"><input data-act="zip" class="zip-input w-28 border border-slate-300 rounded-md px-2 py-1 font-mono tracking-wider" value="${esc(r.zip)}" maxlength="6" inputmode="numeric" placeholder="——————"></td>
+    <td class="px-3 py-2 w-60">${statusHTML(r)}</td></tr>`;
+}
+function visible(r) { const f = $('filterSel').value; return f === 'all' || (f === 'todo' && ['fail', 'conflict', 'review'].includes(r.status)); }
+function renderTable() {
+  const html = records.map((r, i) => visible(r) ? rowHTML(r, i) : '').join('');
+  $('tbody').innerHTML = html || `<tr><td colspan="5" class="px-3 py-8 text-center text-slate-400">${records.length ? '沒有需要補查的地址' : '尚無資料'}</td></tr>`;
+}
+function refreshRow(i) {
+  const tr = $('tbody').querySelector(`tr[data-i="${i}"]`);
+  if (!visible(records[i])) { if (tr) tr.remove(); return; }
+  if (!tr) { renderTable(); return; }
+  const t = document.createElement('tbody'); t.innerHTML = rowHTML(records[i], i); tr.replaceWith(t.firstElementChild);
+}
+$('filterSel').addEventListener('change', renderTable);
+
+/* ---------- 表格操作 ---------- */
+function setZip(i, val, fromUser = true) {
+  const r = records[i], v = norm(val).replace(/\D/g, '');
+  if (v === '') { r.zip = ''; if (r.status !== 'pending') { r.status = 'fail'; r.note = r.note || '使用者清空'; } }
+  else if (/^\d{6}$/.test(v)) { r.zip = v; r.status = (v === r.apiZip && r.status === 'ok') ? 'ok' : 'manual'; if (r.status === 'manual') r.note = r.apiZip && r.apiZip !== v ? `已覆寫查詢結果 ${r.apiZip}` : '使用者輸入'; }
+  else { if (fromUser) alert('郵遞區號必須是 6 位數字。'); refreshRow(i); return false; }
+  refreshRow(i); updateCounts(); return true;
+}
+$('tbody').addEventListener('change', e => { if (e.target.dataset.act === 'zip') setZip(+e.target.closest('tr').dataset.i, e.target.value); });
+$('tbody').addEventListener('click', e => {
+  const act = e.target.dataset.act, tr = e.target.closest('tr'); if (!tr) return;
+  const i = +tr.dataset.i;
+  if (act === 'lookup') { window.open(OFFICIAL_URL, '_blank', 'noopener'); showModal(i); }
+  if (act === 'pick') setZip(i, e.target.dataset.zip);
+});
+
+/* ---------- 官方補查小視窗 ---------- */
+function showModal(i) {
+  modalIdx = i; const r = records[i], p = r.parts;
+  $('mOrig').textContent = r.original;
+  const fields = [['縣市', p.city], ['鄉鎮市區', p.district], ['路街名', p.road + p.section],
+    ['巷／弄', p.lane + p.alley], ['門牌號', p.number], ['完整地址（不含樓層）', p.city + p.district + p.road + p.section + p.lane + p.alley + p.number]];
+  $('mFields').innerHTML = fields.map(([k, v]) => `<div class="flex items-center gap-2">
+    <span class="w-36 shrink-0 text-sm text-slate-500">${k}</span>
+    <span class="flex-1 px-3 py-1.5 rounded-md bg-slate-50 border border-slate-200 ${v ? 'text-slate-800 font-medium' : 'text-slate-400'}">${v ? esc(v) : '（未辨識）'}</span>
+    ${v ? `<button data-copy="${esc(v)}" class="w-14 py-1.5 text-xs rounded-md border border-blue-300 text-blue-700 hover:bg-blue-50">複製</button>` : '<span class="w-14"></span>'}</div>`).join('');
+  $('mNote').textContent = r.note || '';
+  $('mZip').value = r.zip; $('mErr').textContent = '';
+  $('modal').classList.remove('hidden'); setTimeout(() => $('mZip').focus(), 50);
+}
+function closeModal() { $('modal').classList.add('hidden'); modalIdx = null; }
+$('modalClose').addEventListener('click', closeModal);
+$('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && modalIdx !== null) closeModal(); });
+$('mFields').addEventListener('click', async e => {
+  const v = e.target.dataset.copy; if (v == null) return;
+  try { await navigator.clipboard.writeText(v); }
+  catch (err) { const t = document.createElement('textarea'); t.value = v; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
+  e.target.textContent = '已複製'; setTimeout(() => { e.target.textContent = '複製'; }, 1000);
+});
+$('mReopen').addEventListener('click', () => window.open(OFFICIAL_URL, '_blank', 'noopener'));
+function saveModal() {
+  const v = norm($('mZip').value).replace(/\D/g, '');
+  if (!/^\d{6}$/.test(v)) { $('mErr').textContent = '請輸入 6 位數字。'; return false; }
+  setZip(modalIdx, v); return true;
+}
+$('mSave').addEventListener('click', () => { if (saveModal()) closeModal(); });
+$('mZip').addEventListener('keydown', e => { if (e.key === 'Enter') $('mSave').click(); });
+$('mNext').addEventListener('click', () => {
+  if ($('mZip').value.trim() && !saveModal()) return;
+  const todo = i => ['fail', 'conflict', 'review'].includes(records[i].status);
+  let n = records.findIndex((r, i) => i > modalIdx && todo(i));
+  if (n < 0) n = records.findIndex((r, i) => todo(i) && i !== modalIdx);
+  if (n < 0) { closeModal(); alert('已沒有需要補查的地址。'); return; }
+  showModal(n);
+});
+
+/* ---------- 批次查詢 ---------- */
+$('btnStop').addEventListener('click', () => { stopFlag = true; setStatus('停止中，完成目前這筆後停止…'); });
+$('btnStart').addEventListener('click', runBatch);
+
+async function runBatch() {
+  const delay = Math.max(1000, +$('delay').value || 2000);
+  const keep = $('keepExisting').checked;
+  const todo = records.map((r, i) => i).filter(i => ['pending', 'fail', 'conflict'].includes(records[i].status) && !(keep && /^\d{6}$/.test(records[i].existing) && records[i].status === 'pending'));
+  for (const r of records) if (keep && /^\d{6}$/.test(r.existing) && r.status === 'pending') { r.zip = r.existing; r.status = 'ok'; r.note = '原檔已有 6 碼，保留'; }
+  renderTable(); updateCounts();
+  if (!todo.length) { setStatus('沒有需要查詢的地址。'); return; }
+
+  running = true; stopFlag = false;
+  ['btnStart', 'colSelect', 'zipColSelect', 'sheetSel'].forEach(id => $(id).disabled = true);
+  $('btnStop').disabled = false;
+  const ctx = { sources: ['zip5', 'ziptw'], disabled: new Set(), wait: () => sleep(delay) };
+  const cache = new Map(); const t0 = Date.now(); let limitHit = false;
+  log(`開始查詢 ${todo.length} 筆（來源：zip5.5432.tw + ziptw.com，每次查詢間隔 ${delay} 毫秒）`, 'text-sky-300');
+
+  for (let k = 0; k < todo.length; k++) {
+    if (stopFlag) { log(`已停止，完成 ${k} 筆。`, 'text-amber-300'); break; }
+    const i = todo[k], r = records[i];
+    const eta = k ? Math.round((Date.now() - t0) / k * (todo.length - k) / 1000) : null;
+    setStatus(`查詢中 ${k + 1} / ${todo.length}：第 ${r.row + 1} 列${eta != null ? `（約剩 ${eta >= 60 ? Math.ceil(eta / 60) + ' 分鐘' : eta + ' 秒'}）` : ''}`);
+    const key = r.std;
+    let res = cache.get(key);
+    if (res) res = { ...res, note: res.note + '（重複地址，沿用）' };
+    else {
+      const before = new Set(ctx.disabled);
+      res = await lookupOne(r.original, ctx);
+      for (const s of ctx.disabled) if (!before.has(s)) log(`${SOURCES[s].label} 已達每日查詢上限，後續改用其他來源。`, 'text-amber-300');
+      cache.set(key, res);
+    }
+    r.std = res.query || r.std; r.zip = res.zip; r.apiZip = res.zip; r.status = res.status; r.note = res.note; r.candidates = res.candidates;
+    if (r.existing && res.zip && r.existing !== res.zip && r.existing.length === 6) r.note += `｜原檔郵遞區號 ${r.existing} 與查詢結果不同`;
+    log(`第 ${r.row + 1} 列 ${r.original} → ${r.zip || '查無'}｜${r.note}`,
+      { ok: 'text-emerald-300', review: 'text-amber-300', conflict: 'text-amber-300', fail: 'text-red-300' }[r.status]);
+    refreshRow(i); updateCounts(); setProgress((k + 1) / todo.length);
+    if (ctx.sources.every(s => ctx.disabled.has(s))) { limitHit = true; log('所有查詢來源皆已達每日上限，請明天再按「開始」繼續（已完成的不會重查），或使用官方網頁補查。', 'text-red-300'); break; }
+  }
+
+  running = false;
+  ['btnStart', 'colSelect', 'zipColSelect', 'sheetSel'].forEach(id => $(id).disabled = false);
+  $('btnStop').disabled = true;
+  const c = s => records.filter(r => s.includes(r.status)).length;
+  const left = c(['pending']);
+  setStatus((limitHit ? `查詢來源已達每日上限，暫停（尚有 ${left} 筆未查，明天再按「開始」可接續）。目前：` : stopFlag ? `已停止（尚有 ${left} 筆未查，再按「開始」可接續）。目前：` : '完成：') + `成功 ${c(['ok'])} 筆、需覆核 ${c(['review', 'conflict'])} 筆、查無結果 ${c(['fail'])} 筆。` + (c(['fail', 'conflict', 'review']) ? '可在表格中點藍色按鈕到官方網頁補查。' : ''));
+  updateCounts();
+}
+
+/* ---------- 匯出 ---------- */
+function buildEdits() {
+  // 先收下輸入框中尚未觸發 change 的修改
+  document.querySelectorAll('#tbody input[data-act="zip"]').forEach(inp => {
+    const i = +inp.closest('tr').dataset.i;
+    if (norm(inp.value).replace(/\D/g, '') !== records[i].zip) setZip(i, inp.value, false);
+  });
+  const aoa = sheet.aoa, width = Math.max(...aoa.map(r => r ? r.length : 0));
+  let zc = +$('zipColSelect').value, next = width;
+  const edits = new Map(), set = (r, c, v) => { if (!edits.has(r)) edits.set(r, new Map()); edits.get(r).set(c, v); };
+  if (zc < 0) { zc = next++; set(headerRow, zc, '3+3碼郵遞區號'); }
+  const cStd = next++, cNote = next++;
+  set(headerRow, cStd, '標準化地址'); set(headerRow, cNote, '郵遞區號查詢狀態');
+  for (const r of records) {
+    if (r.status === 'pending') continue;
+    if (r.zip || !r.existing) set(r.row, zc, r.zip);         // 查無結果時不清掉原有值
+    set(r.row, cStd, r.std);
+    set(r.row, cNote, STATUS[r.status][0] + (r.note ? '｜' + r.note : ''));
+  }
+  return edits;
+}
+$('btnDownload').addEventListener('click', async () => {
+  try {
+    const edits = buildEdits();
+    const baseName = fileName.replace(/\.[^.]+$/, '');
+    if (book.kind === 'ooxml') {
+      const ext = (fileName.match(/\.(xlsm|xltm)$/i) ? 'xlsm' : 'xlsx');
+      download(await writeXlsxPatched(book, sheet.path, edits, headerRow), `${baseName}_3+3郵遞區號.${ext}`);
+    } else {
+      const ws = book.wb.Sheets[sheet.name];
+      const o = XLSX.utils.decode_range(ws['!ref'] || 'A1').s;     // sheet_to_json 的列欄由使用範圍左上角起算
+      for (const [r0, cols] of edits) for (const [c0, v] of cols) {
+        const r = r0 + o.r, c = c0 + o.c, ref = XLSX.utils.encode_cell({ r, c }); ws[ref] = { t: 's', v: String(v) };
+        const rg = XLSX.utils.decode_range(ws['!ref'] || 'A1'); rg.e.r = Math.max(rg.e.r, r); rg.e.c = Math.max(rg.e.c, c); ws['!ref'] = XLSX.utils.encode_range(rg);
+      }
+      XLSX.writeFile(book.wb, `${baseName}_3+3郵遞區號.xlsx`);
+    }
+  } catch (e) { alert('匯出失敗：' + e.message); }
+});
+function download(blob, name) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 3000);
+}
+</script>
+</body>
+</html>
