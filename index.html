@@ -2,185 +2,209 @@
 <html lang="zh-Hant-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>台灣地址 3+3 碼郵遞區號自動補全</title>
-<script src="https://cdn.tailwindcss.com"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<title>台灣地址 3+3 碼郵遞區號查詢與檢核</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>/*! tailwindcss v4.1.10 | MIT License | https://tailwindcss.com */
+@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) and (not (color:rgb(from red r g b)))){*,:before,:after{--tw-space-y-reverse:0;--tw-border-style:solid;--tw-gradient-position:initial;--tw-gradient-from:#0000;--tw-gradient-via:#0000;--tw-gradient-to:#0000;--tw-gradient-stops:initial;--tw-gradient-via-stops:initial;--tw-gradient-from-position:0%;--tw-gradient-via-position:50%;--tw-gradient-to-position:100%;--tw-leading:initial;--tw-font-weight:initial;--tw-tracking:initial;--tw-shadow:0 0 #0000;--tw-shadow-color:initial;--tw-shadow-alpha:100%;--tw-inset-shadow:0 0 #0000;--tw-inset-shadow-color:initial;--tw-inset-shadow-alpha:100%;--tw-ring-color:initial;--tw-ring-shadow:0 0 #0000;--tw-inset-ring-color:initial;--tw-inset-ring-shadow:0 0 #0000;--tw-ring-inset:initial;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-offset-shadow:0 0 #0000;--tw-duration:initial}::backdrop{--tw-space-y-reverse:0;--tw-border-style:solid;--tw-gradient-position:initial;--tw-gradient-from:#0000;--tw-gradient-via:#0000;--tw-gradient-to:#0000;--tw-gradient-stops:initial;--tw-gradient-via-stops:initial;--tw-gradient-from-position:0%;--tw-gradient-via-position:50%;--tw-gradient-to-position:100%;--tw-leading:initial;--tw-font-weight:initial;--tw-tracking:initial;--tw-shadow:0 0 #0000;--tw-shadow-color:initial;--tw-shadow-alpha:100%;--tw-inset-shadow:0 0 #0000;--tw-inset-shadow-color:initial;--tw-inset-shadow-alpha:100%;--tw-ring-color:initial;--tw-ring-shadow:0 0 #0000;--tw-inset-ring-color:initial;--tw-inset-ring-shadow:0 0 #0000;--tw-ring-inset:initial;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-offset-shadow:0 0 #0000;--tw-duration:initial}}}@layer theme{:root,:host{--font-sans:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";--font-mono:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;--color-red-50:#fef2f2;--color-red-100:#ffe2e2;--color-red-200:#ffcaca;--color-red-300:#ffa3a3;--color-red-600:#e40014;--color-red-700:#bf000f;--color-red-800:#9f0712;--color-amber-50:#fffbeb;--color-amber-100:#fef3c6;--color-amber-200:#fee685;--color-amber-300:#ffd236;--color-amber-400:#fcbb00;--color-amber-800:#953d00;--color-emerald-50:#ecfdf5;--color-emerald-100:#d0fae5;--color-emerald-200:#a4f4cf;--color-emerald-300:#5ee9b5;--color-emerald-400:#00d294;--color-emerald-500:#00bb7f;--color-emerald-600:#009767;--color-emerald-700:#007956;--color-emerald-800:#005f46;--color-cyan-300:#53eafd;--color-cyan-400:#00d2ef;--color-cyan-500:#00b7d7;--color-cyan-600:#0092b5;--color-cyan-700:#007492;--color-cyan-800:#005f78;--color-cyan-900:#104e64;--color-sky-50:#f0f9ff;--color-sky-100:#dff2fe;--color-sky-200:#b8e6fe;--color-sky-300:#77d4ff;--color-sky-700:#0069a4;--color-sky-800:#005986;--color-blue-50:#eff6ff;--color-blue-100:#dbeafe;--color-blue-300:#90c5ff;--color-blue-600:#155dfc;--color-blue-700:#1447e6;--color-blue-800:#193cb8;--color-indigo-600:#4f39f6;--color-indigo-700:#432dd7;--color-violet-500:#8d54ff;--color-violet-600:#7f22fe;--color-violet-700:#7008e7;--color-violet-800:#5d0ec0;--color-fuchsia-500:#e12afb;--color-slate-50:#f8fafc;--color-slate-100:#f1f5f9;--color-slate-200:#e2e8f0;--color-slate-300:#cad5e2;--color-slate-400:#90a1b9;--color-slate-500:#62748e;--color-slate-600:#45556c;--color-slate-700:#314158;--color-slate-800:#1d293d;--color-slate-900:#0f172b;--color-gray-200:#e5e7eb;--color-black:#000;--color-white:#fff;--spacing:.25rem;--container-2xl:42rem;--container-7xl:80rem;--text-xs:.75rem;--text-xs--line-height:calc(1 / .75);--text-sm:.875rem;--text-sm--line-height:calc(1.25 / .875);--text-base:1rem;--text-base--line-height:calc(1.5 / 1);--text-lg:1.125rem;--text-lg--line-height:calc(1.75 / 1.125);--text-xl:1.25rem;--text-xl--line-height:calc(1.75 / 1.25);--text-2xl:1.5rem;--text-2xl--line-height:calc(2 / 1.5);--text-3xl:1.875rem;--text-3xl--line-height:calc(2.25 / 1.875);--font-weight-normal:400;--font-weight-medium:500;--font-weight-semibold:600;--font-weight-bold:700;--tracking-wider:.05em;--tracking-widest:.1em;--leading-snug:1.375;--leading-relaxed:1.625;--radius-md:.375rem;--radius-lg:.5rem;--radius-xl:.75rem;--radius-2xl:1rem;--animate-pulse:pulse 2s cubic-bezier(.4, 0, .6, 1) infinite;--default-transition-duration:.15s;--default-transition-timing-function:cubic-bezier(.4, 0, .2, 1);--default-font-family:var(--font-sans);--default-mono-font-family:var(--font-mono)}@supports (color:color(display-p3 0 0 0)){:root,:host{--color-red-50:color(display-p3 .988669 .951204 .950419);--color-red-100:color(display-p3 .980386 .889727 .887779);--color-red-200:color(display-p3 .969562 .798149 .794299);--color-red-300:color(display-p3 .956922 .651886 .645122);--color-red-600:color(display-p3 .830323 .140383 .133196);--color-red-700:color(display-p3 .692737 .116232 .104679);--color-red-800:color(display-p3 .569606 .121069 .108493);--color-amber-50:color(display-p3 .997804 .985047 .926312);--color-amber-100:color(display-p3 .989391 .954583 .796328);--color-amber-200:color(display-p3 .979824 .904554 .57325);--color-amber-300:color(display-p3 .974327 .83063 .33298);--color-amber-400:color(display-p3 .959186 .738519 .118268);--color-amber-800:color(display-p3 .547533 .256058 .0728326);--color-emerald-50:color(display-p3 .936818 .989882 .961937);--color-emerald-100:color(display-p3 .848335 .975974 .901691);--color-emerald-200:color(display-p3 .713164 .947563 .822283);--color-emerald-300:color(display-p3 .524941 .903425 .722352);--color-emerald-400:color(display-p3 .334701 .819603 .591575);--color-emerald-500:color(display-p3 .267113 .726847 .508397);--color-emerald-600:color(display-p3 .206557 .589057 .413962);--color-emerald-700:color(display-p3 .164041 .470229 .343508);--color-emerald-800:color(display-p3 .135396 .371401 .277561);--color-cyan-300:color(display-p3 .503734 .904871 .979358);--color-cyan-400:color(display-p3 .294638 .813991 .934996);--color-cyan-500:color(display-p3 .246703 .710032 .841444);--color-cyan-600:color(display-p3 .193249 .564651 .707197);--color-cyan-700:color(display-p3 .164124 .451431 .570574);--color-cyan-800:color(display-p3 .151437 .365208 .461053);--color-cyan-900:color(display-p3 .142586 .302008 .385094);--color-sky-50:color(display-p3 .946501 .975402 .998336);--color-sky-100:color(display-p3 .889195 .946622 .992447);--color-sky-200:color(display-p3 .758153 .897447 .986665);--color-sky-300:color(display-p3 .546356 .822561 .990576);--color-sky-700:color(display-p3 .130314 .404568 .640847);--color-sky-800:color(display-p3 .120719 .343083 .524405);--color-blue-50:color(display-p3 .941826 .963151 .995385);--color-blue-100:color(display-p3 .869214 .915931 .989622);--color-blue-300:color(display-p3 .602559 .767214 .993938);--color-blue-600:color(display-p3 .174493 .358974 .950247);--color-blue-700:color(display-p3 .1379 .274983 .867624);--color-blue-800:color(display-p3 .134023 .230647 .695537);--color-indigo-600:color(display-p3 .297656 .227891 .929242);--color-indigo-700:color(display-p3 .251282 .180274 .81203);--color-violet-500:color(display-p3 .523372 .329605 .990884);--color-violet-600:color(display-p3 .459951 .162666 .957985);--color-violet-700:color(display-p3 .40161 .0841901 .871151);--color-violet-800:color(display-p3 .333914 .0857549 .723825);--color-fuchsia-500:color(display-p3 .81268 .241966 .951571);--color-slate-50:color(display-p3 .974377 .979815 .986207);--color-slate-100:color(display-p3 .947345 .959969 .97483);--color-slate-200:color(display-p3 .890322 .909405 .939294);--color-slate-300:color(display-p3 .800294 .834432 .882803);--color-slate-400:color(display-p3 .577446 .629622 .716602);--color-slate-500:color(display-p3 .397645 .452653 .547642);--color-slate-600:color(display-p3 .283418 .332214 .416355);--color-slate-700:color(display-p3 .205992 .253487 .336039);--color-slate-800:color(display-p3 .121994 .158688 .232363);--color-slate-900:color(display-p3 .0639692 .0891152 .163036);--color-gray-200:color(display-p3 .899787 .906171 .92106)}}@supports (color:lab(0% 0 0)){:root,:host{--color-red-50:lab(96.5005% 4.18508 1.52328);--color-red-100:lab(92.243% 10.2865 3.83865);--color-red-200:lab(86.017% 19.8815 7.75869);--color-red-300:lab(76.5514% 36.422 15.5335);--color-red-600:lab(48.4493% 77.4328 61.5452);--color-red-700:lab(40.4273% 67.2623 53.7441);--color-red-800:lab(33.7174% 55.8993 41.0293);--color-amber-50:lab(98.6252% -.635922 8.42309);--color-amber-100:lab(95.916% -1.21653 23.111);--color-amber-200:lab(91.7203% -.505269 49.9084);--color-amber-300:lab(86.4156% 6.13147 78.3961);--color-amber-400:lab(80.1641% 16.6016 99.2089);--color-amber-800:lab(37.8822% 37.1699 52.2718);--color-emerald-50:lab(97.8462% -6.94966 1.85487);--color-emerald-100:lab(94.9004% -17.0769 5.63836);--color-emerald-200:lab(90.2247% -31.039 9.47084);--color-emerald-300:lab(83.9203% -48.7124 13.8849);--color-emerald-400:lab(75.0771% -60.7313 19.4147);--color-emerald-500:lab(66.9756% -58.27 19.5419);--color-emerald-600:lab(55.0481% -49.9246 15.93);--color-emerald-700:lab(44.4871% -41.0396 11.0361);--color-emerald-800:lab(35.3675% -33.1188 8.04002);--color-cyan-300:lab(85.3886% -36.7636 -21.5716);--color-cyan-400:lab(76.6045% -40.9406 -29.6231);--color-cyan-500:lab(67.805% -35.3952 -30.2018);--color-cyan-600:lab(55.1767% -26.7496 -30.5139);--color-cyan-700:lab(44.7267% -21.5987 -26.118);--color-cyan-800:lab(36.5114% -17.1989 -21.6292);--color-cyan-900:lab(30.372% -13.1853 -18.7887);--color-sky-50:lab(97.3623% -2.33802 -4.13098);--color-sky-100:lab(94.3709% -4.56053 -8.23453);--color-sky-200:lab(88.6983% -11.3978 -16.8488);--color-sky-300:lab(80.3307% -20.2945 -31.385);--color-sky-700:lab(41.6013% -9.10804 -42.5647);--color-sky-800:lab(35.164% -9.57692 -34.4068);--color-blue-50:lab(96.492% -1.14644 -5.11479);--color-blue-100:lab(92.0301% -2.24757 -11.6453);--color-blue-300:lab(77.5052% -6.4629 -36.42);--color-blue-600:lab(44.0605% 29.0279 -86.0352);--color-blue-700:lab(36.9089% 35.0961 -85.6872);--color-blue-800:lab(30.2514% 27.7853 -70.2699);--color-indigo-600:lab(38.4009% 52.6132 -92.3857);--color-indigo-700:lab(32.4486% 49.2217 -84.6695);--color-violet-500:lab(49.9355% 55.1776 -81.8963);--color-violet-600:lab(41.088% 68.9966 -91.995);--color-violet-700:lab(35.2783% 67.9912 -88.793);--color-violet-800:lab(29.3188% 57.7986 -76.1493);--color-fuchsia-500:lab(56.4256% 83.132 -64.639);--color-slate-50:lab(98.1434% -.369519 -1.05966);--color-slate-100:lab(96.286% -.852436 -2.46847);--color-slate-200:lab(91.7353% -.998765 -4.76968);--color-slate-300:lab(84.7652% -1.94535 -7.93337);--color-slate-400:lab(65.5349% -2.25151 -14.5072);--color-slate-500:lab(48.0876% -2.03595 -16.5814);--color-slate-600:lab(35.5623% -1.74978 -15.4316);--color-slate-700:lab(26.9569% -1.47016 -15.6993);--color-slate-800:lab(16.132% -.318035 -14.6672);--color-slate-900:lab(7.78673% 1.82345 -15.0537);--color-gray-200:lab(91.6229% -.159115 -2.26791)}}}@layer base{*,:after,:before{box-sizing:border-box;border:0 solid;margin:0;padding:0}::backdrop{box-sizing:border-box;border:0 solid;margin:0;padding:0}::-webkit-file-upload-button{box-sizing:border-box;border:0 solid;margin:0;padding:0}::file-selector-button{box-sizing:border-box;border:0 solid;margin:0;padding:0}html,:host{-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;line-height:1.5;font-family:var(--default-font-family,ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji");font-feature-settings:var(--default-font-feature-settings,normal);font-variation-settings:var(--default-font-variation-settings,normal);-webkit-tap-highlight-color:transparent}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,samp,pre{font-family:var(--default-mono-font-family,ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);font-feature-settings:var(--default-mono-font-feature-settings,normal);font-variation-settings:var(--default-mono-font-variation-settings,normal);font-size:1em}small{font-size:80%}sub,sup{vertical-align:baseline;font-size:75%;line-height:0;position:relative}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}:-moz-focusring{outline:auto}progress{vertical-align:baseline}summary{display:list-item}ol,ul,menu{list-style:none}img,svg,video,canvas,audio,iframe,embed,object{vertical-align:middle;display:block}img,video{max-width:100%;height:auto}button,input,select,optgroup,textarea{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}::-webkit-file-upload-button{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}::file-selector-button{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}:where(select:is([multiple],[size])) optgroup{font-weight:bolder}:where(select:is([multiple],[size])) optgroup option{padding-inline-start:20px}::-webkit-file-upload-button{margin-inline-end:4px}::file-selector-button{margin-inline-end:4px}::placeholder{opacity:1}@supports (not ((-webkit-appearance:-apple-pay-button))) or (contain-intrinsic-size:1px){::placeholder{color:currentColor}@supports (color:color-mix(in lab, red, red)){::placeholder{color:color-mix(in oklab, currentcolor 50%, transparent)}}}textarea{resize:vertical}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-date-and-time-value{min-height:1lh;text-align:inherit}::-webkit-datetime-edit{display:inline-flex}::-webkit-datetime-edit-fields-wrapper{padding:0}::-webkit-datetime-edit{padding-block-start:0;padding-block-end:0}::-webkit-datetime-edit-year-field{padding-block-start:0;padding-block-end:0}::-webkit-datetime-edit-month-field{padding-block-start:0;padding-block-end:0}::-webkit-datetime-edit-day-field{padding-block-start:0;padding-block-end:0}::-webkit-datetime-edit-hour-field{padding-block-start:0;padding-block-end:0}::-webkit-datetime-edit-minute-field{padding-block-start:0;padding-block-end:0}::-webkit-datetime-edit-second-field{padding-block-start:0;padding-block-end:0}::-webkit-datetime-edit-millisecond-field{padding-block-start:0;padding-block-end:0}::-webkit-datetime-edit-meridiem-field{padding-block-start:0;padding-block-end:0}:-moz-ui-invalid{box-shadow:none}button,input:where([type=button],[type=reset],[type=submit]){-webkit-appearance:button;appearance:button}::-webkit-file-upload-button{-webkit-appearance:button;appearance:button}::file-selector-button{-webkit-appearance:button;appearance:button}::-webkit-inner-spin-button{height:auto}::-webkit-outer-spin-button{height:auto}[hidden]:where(:not([hidden=until-found])){display:none!important}*,:after,:before{border-color:var(--color-gray-200,currentcolor)}::backdrop{border-color:var(--color-gray-200,currentcolor)}::-webkit-file-upload-button{border-color:var(--color-gray-200,currentcolor)}::file-selector-button{border-color:var(--color-gray-200,currentcolor)}button:not(:disabled),[role=button]:not(:disabled){cursor:pointer}}@layer components;@layer utilities{.visible{visibility:visible}.fixed{position:fixed}.sticky{position:sticky}.inset-0{inset:calc(var(--spacing) * 0)}.top-0{top:calc(var(--spacing) * 0)}.z-10{z-index:10}.z-50{z-index:50}.col-span-2{grid-column:span 2/span 2}.mx-auto{margin-inline-start:auto;margin-inline-end:auto}.-my-1{margin-block:calc(var(--spacing) * -1)}.mt-0\.5{margin-top:calc(var(--spacing) * .5)}.mt-1{margin-top:calc(var(--spacing) * 1)}.mt-1\.5{margin-top:calc(var(--spacing) * 1.5)}.mt-2{margin-top:calc(var(--spacing) * 2)}.-mr-1{margin-right:calc(var(--spacing) * -1)}.mb-1{margin-bottom:calc(var(--spacing) * 1)}.block{display:block}.flex{display:flex}.grid{display:grid}.hidden{display:none}.inline{display:inline}.inline-block{display:inline-block}.table{display:table}.h-3{height:calc(var(--spacing) * 3)}.h-7{height:calc(var(--spacing) * 7)}.h-9{height:calc(var(--spacing) * 9)}.h-48{height:calc(var(--spacing) * 48)}.h-full{height:100%}.max-h-\[92vh\]{max-height:92vh}.max-h-\[560px\]{max-height:560px}.min-h-screen{min-height:100vh}.w-7{width:calc(var(--spacing) * 7)}.w-9{width:calc(var(--spacing) * 9)}.w-12{width:calc(var(--spacing) * 12)}.w-14{width:calc(var(--spacing) * 14)}.w-20{width:calc(var(--spacing) * 20)}.w-28{width:calc(var(--spacing) * 28)}.w-64{width:calc(var(--spacing) * 64)}.w-80{width:calc(var(--spacing) * 80)}.w-full{width:100%}.max-w-2xl{max-width:var(--container-2xl)}.max-w-7xl{max-width:var(--container-7xl)}.min-w-0{min-width:calc(var(--spacing) * 0)}.flex-1{flex:1}.shrink-0{flex-shrink:0}.animate-pulse{animation:var(--animate-pulse)}.cursor-pointer{cursor:pointer}.grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.items-end{align-items:flex-end}.items-start{align-items:flex-start}.justify-between{justify-content:space-between}.justify-center{justify-content:center}.justify-end{justify-content:flex-end}.gap-1{gap:calc(var(--spacing) * 1)}.gap-1\.5{gap:calc(var(--spacing) * 1.5)}.gap-2{gap:calc(var(--spacing) * 2)}.gap-3{gap:calc(var(--spacing) * 3)}:where(.space-y-0\.5>:not(:last-child)){--tw-space-y-reverse:0;margin-block-start:calc(calc(var(--spacing) * .5) * var(--tw-space-y-reverse));margin-block-end:calc(calc(var(--spacing) * .5) * calc(1 - var(--tw-space-y-reverse)))}:where(.space-y-2>:not(:last-child)){--tw-space-y-reverse:0;margin-block-start:calc(calc(var(--spacing) * 2) * var(--tw-space-y-reverse));margin-block-end:calc(calc(var(--spacing) * 2) * calc(1 - var(--tw-space-y-reverse)))}:where(.space-y-3>:not(:last-child)){--tw-space-y-reverse:0;margin-block-start:calc(calc(var(--spacing) * 3) * var(--tw-space-y-reverse));margin-block-end:calc(calc(var(--spacing) * 3) * calc(1 - var(--tw-space-y-reverse)))}:where(.space-y-4>:not(:last-child)){--tw-space-y-reverse:0;margin-block-start:calc(calc(var(--spacing) * 4) * var(--tw-space-y-reverse));margin-block-end:calc(calc(var(--spacing) * 4) * calc(1 - var(--tw-space-y-reverse)))}.gap-x-3{column-gap:calc(var(--spacing) * 3)}.gap-y-2{row-gap:calc(var(--spacing) * 2)}.overflow-auto{overflow:auto}.overflow-hidden{overflow:hidden}.overflow-x-hidden{overflow-x:hidden}.overflow-y-auto{overflow-y:auto}.rounded{border-radius:.25rem}.rounded-2xl{border-radius:var(--radius-2xl)}.rounded-full{border-radius:3.40282e38px}.rounded-lg{border-radius:var(--radius-lg)}.rounded-md{border-radius:var(--radius-md)}.rounded-xl{border-radius:var(--radius-xl)}.rounded-t-2xl{border-top-left-radius:var(--radius-2xl);border-top-right-radius:var(--radius-2xl)}.border{border-style:var(--tw-border-style);border-width:1px}.border-2{border-style:var(--tw-border-style);border-width:2px}.border-t{border-top-style:var(--tw-border-style);border-top-width:1px}.border-dashed{--tw-border-style:dashed;border-style:dashed}.border-amber-200{border-color:var(--color-amber-200)}.border-amber-400{border-color:var(--color-amber-400)}.border-blue-300{border-color:var(--color-blue-300)}.border-current{border-color:currentColor}.border-emerald-200{border-color:var(--color-emerald-200)}.border-red-200{border-color:var(--color-red-200)}.border-red-300{border-color:var(--color-red-300)}.border-sky-200{border-color:var(--color-sky-200)}.border-slate-100{border-color:var(--color-slate-100)}.border-slate-200{border-color:var(--color-slate-200)}.border-slate-300{border-color:var(--color-slate-300)}.bg-amber-50{background-color:var(--color-amber-50)}.bg-amber-50\/40{background-color:#fffbeb66}@supports (color:color-mix(in lab, red, red)){.bg-amber-50\/40{background-color:color-mix(in oklab, var(--color-amber-50) 40%, transparent)}}.bg-amber-50\/50{background-color:#fffbeb80}@supports (color:color-mix(in lab, red, red)){.bg-amber-50\/50{background-color:color-mix(in oklab, var(--color-amber-50) 50%, transparent)}}.bg-amber-100{background-color:var(--color-amber-100)}.bg-black\/40{background-color:#0006}@supports (color:color-mix(in lab, red, red)){.bg-black\/40{background-color:color-mix(in oklab, var(--color-black) 40%, transparent)}}.bg-blue-100{background-color:var(--color-blue-100)}.bg-blue-600{background-color:var(--color-blue-600)}.bg-cyan-600{background-color:var(--color-cyan-600)}.bg-cyan-700{background-color:var(--color-cyan-700)}.bg-emerald-50{background-color:var(--color-emerald-50)}.bg-emerald-50\/40{background-color:#ecfdf566}@supports (color:color-mix(in lab, red, red)){.bg-emerald-50\/40{background-color:color-mix(in oklab, var(--color-emerald-50) 40%, transparent)}}.bg-emerald-100{background-color:var(--color-emerald-100)}.bg-emerald-600{background-color:var(--color-emerald-600)}.bg-indigo-600{background-color:var(--color-indigo-600)}.bg-red-50{background-color:var(--color-red-50)}.bg-red-50\/50{background-color:#fef2f280}@supports (color:color-mix(in lab, red, red)){.bg-red-50\/50{background-color:color-mix(in oklab, var(--color-red-50) 50%, transparent)}}.bg-red-50\/60{background-color:#fef2f299}@supports (color:color-mix(in lab, red, red)){.bg-red-50\/60{background-color:color-mix(in oklab, var(--color-red-50) 60%, transparent)}}.bg-red-100{background-color:var(--color-red-100)}.bg-sky-50{background-color:var(--color-sky-50)}.bg-sky-100{background-color:var(--color-sky-100)}.bg-slate-50{background-color:var(--color-slate-50)}.bg-slate-100{background-color:var(--color-slate-100)}.bg-slate-200{background-color:var(--color-slate-200)}.bg-slate-800{background-color:var(--color-slate-800)}.bg-slate-900{background-color:var(--color-slate-900)}.bg-violet-600{background-color:var(--color-violet-600)}.bg-violet-700{background-color:var(--color-violet-700)}.bg-white{background-color:var(--color-white)}.bg-gradient-to-r{--tw-gradient-position:to right in oklab;background-image:linear-gradient(var(--tw-gradient-stops))}.from-cyan-500{--tw-gradient-from:var(--color-cyan-500);--tw-gradient-stops:var(--tw-gradient-via-stops,var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position))}.from-slate-900{--tw-gradient-from:var(--color-slate-900);--tw-gradient-stops:var(--tw-gradient-via-stops,var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position))}.from-violet-500{--tw-gradient-from:var(--color-violet-500);--tw-gradient-stops:var(--tw-gradient-via-stops,var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position))}.via-slate-800{--tw-gradient-via:var(--color-slate-800);--tw-gradient-via-stops:var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-via) var(--tw-gradient-via-position), var(--tw-gradient-to) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-via-stops)}.to-cyan-900{--tw-gradient-to:var(--color-cyan-900);--tw-gradient-stops:var(--tw-gradient-via-stops,var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position))}.to-emerald-500{--tw-gradient-to:var(--color-emerald-500);--tw-gradient-stops:var(--tw-gradient-via-stops,var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position))}.to-fuchsia-500{--tw-gradient-to:var(--color-fuchsia-500);--tw-gradient-stops:var(--tw-gradient-via-stops,var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position))}.p-0{padding:calc(var(--spacing) * 0)}.p-3{padding:calc(var(--spacing) * 3)}.p-4{padding:calc(var(--spacing) * 4)}.p-5{padding:calc(var(--spacing) * 5)}.px-1{padding-inline:calc(var(--spacing) * 1)}.px-2{padding-inline:calc(var(--spacing) * 2)}.px-2\.5{padding-inline:calc(var(--spacing) * 2.5)}.px-3{padding-inline:calc(var(--spacing) * 3)}.px-4{padding-inline:calc(var(--spacing) * 4)}.px-5{padding-inline:calc(var(--spacing) * 5)}.px-6{padding-inline:calc(var(--spacing) * 6)}.py-0\.5{padding-block:calc(var(--spacing) * .5)}.py-1{padding-block:calc(var(--spacing) * 1)}.py-1\.5{padding-block:calc(var(--spacing) * 1.5)}.py-2{padding-block:calc(var(--spacing) * 2)}.py-2\.5{padding-block:calc(var(--spacing) * 2.5)}.py-3{padding-block:calc(var(--spacing) * 3)}.py-4{padding-block:calc(var(--spacing) * 4)}.py-8{padding-block:calc(var(--spacing) * 8)}.pt-3{padding-top:calc(var(--spacing) * 3)}.pt-4{padding-top:calc(var(--spacing) * 4)}.pb-1{padding-bottom:calc(var(--spacing) * 1)}.pb-6{padding-bottom:calc(var(--spacing) * 6)}.text-center{text-align:center}.text-left{text-align:left}.align-top{vertical-align:top}.font-mono{font-family:var(--font-mono)}.text-2xl{font-size:var(--text-2xl);line-height:var(--tw-leading,var(--text-2xl--line-height))}.text-3xl{font-size:var(--text-3xl);line-height:var(--tw-leading,var(--text-3xl--line-height))}.text-base{font-size:var(--text-base);line-height:var(--tw-leading,var(--text-base--line-height))}.text-lg{font-size:var(--text-lg);line-height:var(--tw-leading,var(--text-lg--line-height))}.text-sm{font-size:var(--text-sm);line-height:var(--tw-leading,var(--text-sm--line-height))}.text-xl{font-size:var(--text-xl);line-height:var(--tw-leading,var(--text-xl--line-height))}.text-xs{font-size:var(--text-xs);line-height:var(--tw-leading,var(--text-xs--line-height))}.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}.leading-none{--tw-leading:1;line-height:1}.leading-relaxed{--tw-leading:var(--leading-relaxed);line-height:var(--leading-relaxed)}.leading-snug{--tw-leading:var(--leading-snug);line-height:var(--leading-snug)}.font-bold{--tw-font-weight:var(--font-weight-bold);font-weight:var(--font-weight-bold)}.font-medium{--tw-font-weight:var(--font-weight-medium);font-weight:var(--font-weight-medium)}.font-normal{--tw-font-weight:var(--font-weight-normal);font-weight:var(--font-weight-normal)}.font-semibold{--tw-font-weight:var(--font-weight-semibold);font-weight:var(--font-weight-semibold)}.tracking-\[0\.25em\]{--tw-tracking:.25em;letter-spacing:.25em}.tracking-wider{--tw-tracking:var(--tracking-wider);letter-spacing:var(--tracking-wider)}.tracking-widest{--tw-tracking:var(--tracking-widest);letter-spacing:var(--tracking-widest)}.text-amber-300{color:var(--color-amber-300)}.text-amber-800{color:var(--color-amber-800)}.text-blue-600{color:var(--color-blue-600)}.text-blue-700{color:var(--color-blue-700)}.text-blue-800{color:var(--color-blue-800)}.text-cyan-300{color:var(--color-cyan-300)}.text-cyan-700{color:var(--color-cyan-700)}.text-emerald-300{color:var(--color-emerald-300)}.text-emerald-700{color:var(--color-emerald-700)}.text-emerald-800{color:var(--color-emerald-800)}.text-red-300{color:var(--color-red-300)}.text-red-600{color:var(--color-red-600)}.text-red-700{color:var(--color-red-700)}.text-red-800{color:var(--color-red-800)}.text-sky-300{color:var(--color-sky-300)}.text-sky-700{color:var(--color-sky-700)}.text-sky-800{color:var(--color-sky-800)}.text-slate-100{color:var(--color-slate-100)}.text-slate-200{color:var(--color-slate-200)}.text-slate-300{color:var(--color-slate-300)}.text-slate-400{color:var(--color-slate-400)}.text-slate-500{color:var(--color-slate-500)}.text-slate-600{color:var(--color-slate-600)}.text-slate-700{color:var(--color-slate-700)}.text-slate-800{color:var(--color-slate-800)}.text-violet-700{color:var(--color-violet-700)}.text-white{color:var(--color-white)}.underline{text-decoration-line:underline}.shadow-2xl{--tw-shadow:0 25px 50px -12px var(--tw-shadow-color,#00000040);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-sm{--tw-shadow:0 1px 3px 0 var(--tw-shadow-color,#0000001a), 0 1px 2px -1px var(--tw-shadow-color,#0000001a);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.transition-all{transition-property:all;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-colors{transition-property:color,background-color,border-color,outline-color,text-decoration-color,fill,stroke,--tw-gradient-from,--tw-gradient-via,--tw-gradient-to;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.duration-200{--tw-duration:.2s;transition-duration:.2s}.outline-none{--tw-outline-style:none;outline-style:none}@media (hover:hover){.hover\:bg-amber-50:hover{background-color:var(--color-amber-50)}}@media (hover:hover){.hover\:bg-blue-50:hover{background-color:var(--color-blue-50)}}@media (hover:hover){.hover\:bg-blue-700:hover{background-color:var(--color-blue-700)}}@media (hover:hover){.hover\:bg-cyan-800:hover{background-color:var(--color-cyan-800)}}@media (hover:hover){.hover\:bg-emerald-700:hover{background-color:var(--color-emerald-700)}}@media (hover:hover){.hover\:bg-indigo-700:hover{background-color:var(--color-indigo-700)}}@media (hover:hover){.hover\:bg-red-50:hover{background-color:var(--color-red-50)}}@media (hover:hover){.hover\:bg-slate-50:hover{background-color:var(--color-slate-50)}}@media (hover:hover){.hover\:bg-slate-100:hover{background-color:var(--color-slate-100)}}@media (hover:hover){.hover\:bg-violet-700:hover{background-color:var(--color-violet-700)}}@media (hover:hover){.hover\:bg-violet-800:hover{background-color:var(--color-violet-800)}}@media (hover:hover){.hover\:bg-white:hover{background-color:var(--color-white)}}@media (hover:hover){.hover\:bg-white\/60:hover{background-color:#fff9}@supports (color:color-mix(in lab, red, red)){.hover\:bg-white\/60:hover{background-color:color-mix(in oklab, var(--color-white) 60%, transparent)}}}@media (hover:hover){.hover\:text-slate-700:hover{color:var(--color-slate-700)}}.focus\:ring-2:focus{--tw-ring-shadow:var(--tw-ring-inset,) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color,currentcolor);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.focus\:ring-cyan-400:focus{--tw-ring-color:var(--color-cyan-400)}.focus\:ring-emerald-400:focus{--tw-ring-color:var(--color-emerald-400)}.focus\:outline-none:focus{--tw-outline-style:none;outline-style:none}.disabled\:cursor-not-allowed:disabled{cursor:not-allowed}.disabled\:border-slate-200:disabled{border-color:var(--color-slate-200)}.disabled\:bg-slate-100:disabled{background-color:var(--color-slate-100)}.disabled\:bg-slate-300:disabled{background-color:var(--color-slate-300)}.disabled\:text-slate-300:disabled{color:var(--color-slate-300)}@media (hover:hover){.disabled\:hover\:bg-white:disabled:hover{background-color:var(--color-white)}}@media (min-width:40rem){.sm\:col-span-4{grid-column:span 4/span 4}}@media (min-width:40rem){.sm\:flex{display:flex}}@media (min-width:40rem){.sm\:inline{display:inline}}@media (min-width:40rem){.sm\:w-40{width:calc(var(--spacing) * 40)}}@media (min-width:40rem){.sm\:w-auto{width:auto}}@media (min-width:40rem){.sm\:flex-1{flex:1}}@media (min-width:40rem){.sm\:flex-none{flex:none}}@media (min-width:40rem){.sm\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (min-width:40rem){.sm\:grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}}@media (min-width:40rem){.sm\:flex-row{flex-direction:row}}@media (min-width:40rem){.sm\:flex-wrap{flex-wrap:wrap}}@media (min-width:40rem){.sm\:items-center{align-items:center}}@media (min-width:40rem){.sm\:gap-2{gap:calc(var(--spacing) * 2)}}@media (min-width:40rem){.sm\:gap-3{gap:calc(var(--spacing) * 3)}}@media (min-width:40rem){.sm\:gap-4{gap:calc(var(--spacing) * 4)}}@media (min-width:40rem){:where(.sm\:space-y-5>:not(:last-child)){--tw-space-y-reverse:0;margin-block-start:calc(calc(var(--spacing) * 5) * var(--tw-space-y-reverse));margin-block-end:calc(calc(var(--spacing) * 5) * calc(1 - var(--tw-space-y-reverse)))}}@media (min-width:40rem){:where(.sm\:space-y-6>:not(:last-child)){--tw-space-y-reverse:0;margin-block-start:calc(calc(var(--spacing) * 6) * var(--tw-space-y-reverse));margin-block-end:calc(calc(var(--spacing) * 6) * calc(1 - var(--tw-space-y-reverse)))}}@media (min-width:40rem){.sm\:rounded-2xl{border-radius:var(--radius-2xl)}}@media (min-width:40rem){.sm\:p-4{padding:calc(var(--spacing) * 4)}}@media (min-width:40rem){.sm\:p-6{padding:calc(var(--spacing) * 6)}}@media (min-width:40rem){.sm\:px-6{padding-inline:calc(var(--spacing) * 6)}}@media (min-width:40rem){.sm\:py-1{padding-block:calc(var(--spacing) * 1)}}@media (min-width:40rem){.sm\:py-1\.5{padding-block:calc(var(--spacing) * 1.5)}}@media (min-width:40rem){.sm\:py-4{padding-block:calc(var(--spacing) * 4)}}@media (min-width:40rem){.sm\:py-6{padding-block:calc(var(--spacing) * 6)}}@media (min-width:40rem){.sm\:text-2xl{font-size:var(--text-2xl);line-height:var(--tw-leading,var(--text-2xl--line-height))}}@media (min-width:40rem){.sm\:text-base{font-size:var(--text-base);line-height:var(--tw-leading,var(--text-base--line-height))}}@media (min-width:40rem){.sm\:text-lg{font-size:var(--text-lg);line-height:var(--tw-leading,var(--text-lg--line-height))}}@media (min-width:40rem){.sm\:text-sm{font-size:var(--text-sm);line-height:var(--tw-leading,var(--text-sm--line-height))}}@media (min-width:40rem){.sm\:text-xs{font-size:var(--text-xs);line-height:var(--tw-leading,var(--text-xs--line-height))}}@media (min-width:40rem){.sm\:font-bold{--tw-font-weight:var(--font-weight-bold);font-weight:var(--font-weight-bold)}}@media (min-width:40rem){.sm\:text-slate-800{color:var(--color-slate-800)}}@media (min-width:48rem){.md\:hidden{display:none}}@media (min-width:48rem){.md\:w-24{width:calc(var(--spacing) * 24)}}@media (min-width:48rem){.md\:px-1\.5{padding-inline:calc(var(--spacing) * 1.5)}}@media (min-width:48rem){.md\:py-0{padding-block:calc(var(--spacing) * 0)}}@media (min-width:48rem){.md\:py-1{padding-block:calc(var(--spacing) * 1)}}@media (min-width:48rem){.md\:text-sm{font-size:var(--text-sm);line-height:var(--tw-leading,var(--text-sm--line-height))}}@media (min-width:48rem){.md\:text-\[11px\]{font-size:11px}}@media (min-width:64rem){.lg\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}}}@property --tw-space-y-reverse{syntax:"*";inherits:false;initial-value:0}@property --tw-border-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-gradient-position{syntax:"*";inherits:false}@property --tw-gradient-from{syntax:"<color>";inherits:false;initial-value:#0000}@property --tw-gradient-via{syntax:"<color>";inherits:false;initial-value:#0000}@property --tw-gradient-to{syntax:"<color>";inherits:false;initial-value:#0000}@property --tw-gradient-stops{syntax:"*";inherits:false}@property --tw-gradient-via-stops{syntax:"*";inherits:false}@property --tw-gradient-from-position{syntax:"<length-percentage>";inherits:false;initial-value:0%}@property --tw-gradient-via-position{syntax:"<length-percentage>";inherits:false;initial-value:50%}@property --tw-gradient-to-position{syntax:"<length-percentage>";inherits:false;initial-value:100%}@property --tw-leading{syntax:"*";inherits:false}@property --tw-font-weight{syntax:"*";inherits:false}@property --tw-tracking{syntax:"*";inherits:false}@property --tw-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-shadow-color{syntax:"*";inherits:false}@property --tw-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-inset-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-inset-shadow-color{syntax:"*";inherits:false}@property --tw-inset-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-ring-color{syntax:"*";inherits:false}@property --tw-ring-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-inset-ring-color{syntax:"*";inherits:false}@property --tw-inset-ring-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-ring-inset{syntax:"*";inherits:false}@property --tw-ring-offset-width{syntax:"<length>";inherits:false;initial-value:0}@property --tw-ring-offset-color{syntax:"*";inherits:false;initial-value:#fff}@property --tw-ring-offset-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-duration{syntax:"*";inherits:false}@keyframes pulse{50%{opacity:.5}}</style>
 <style>
-  body { font-family: "Microsoft JhengHei", "Noto Sans TC", system-ui, sans-serif; }
+  body { font-family: "Microsoft JhengHei", "Noto Sans TC", "PingFang TC", system-ui, sans-serif; -webkit-text-size-adjust: 100%; }
   #dropZone.dragover { background: #ecfeff; border-color: #0891b2; }
   #ckDrop.dragover { background: #f5f3ff; border-color: #7c3aed; }
   #log { font-family: Consolas, "Microsoft JhengHei", monospace; }
   .hidden { display: none !important; }
+  .break-any { overflow-wrap: anywhere; word-break: break-word; }
+  @media (pointer: coarse) { table.rtable button { min-height: 36px; } }
+  /* ===== 手機版：表格改為卡片式 ===== */
+  @media (max-width: 767px) {
+    table.rtable thead { display: none; }
+    table.rtable, table.rtable tbody, table.rtable tr, table.rtable td { display: block; width: auto !important; }
+    table.rtable tr { margin: .625rem; padding: .5rem .75rem .75rem; border: 1px solid #e2e8f0 !important; border-radius: .875rem; background-clip: padding-box; box-shadow: 0 1px 2px rgba(15,23,42,.05); }
+    table.rtable tr.rt-empty { border: 0 !important; box-shadow: none; }
+    table.rtable td { padding: .3rem 0 !important; }
+    table.rtable td[data-label]::before { content: attr(data-label); display: block; font-size: 11px; line-height: 1.2; font-weight: 600; color: #64748b; margin-bottom: 2px; }
+    table.rtable td.rt-no { font-size: 11px; color: #94a3b8; padding-bottom: 0 !important; }
+    table.rtable td.rt-no::before { display: inline !important; margin-right: 4px; }
+    .scroll-box { max-height: none !important; overflow: visible !important; border: 0 !important; }
+  }
 </style>
 </head>
-<body class="bg-slate-100 min-h-screen">
+<body class="bg-slate-100 min-h-screen overflow-x-hidden">
 <header class="bg-gradient-to-r from-slate-900 via-slate-800 to-cyan-900 text-white">
-  <div class="max-w-7xl mx-auto px-6 py-6">
-    <div class="text-xs tracking-[0.3em] text-cyan-300">TW ADDRESS · 3+3 POSTAL CODE ENGINE</div>
-    <h1 class="text-2xl font-bold mt-1">台灣地址 3+3 碼郵遞區號自動補全</h1>
-    <p class="text-sm text-slate-300 mt-1">上傳 Excel → 一鍵補全並輸出。地址直接依「中華郵政官方 3+3 投遞範圍資料」（約 8 萬筆，每月更新）在瀏覽器內比對，自動補行政區、處理單雙號／巷號／之號／樓層分碼；比對不到時再以免費 API（zip5.5432.tw）備援。完全免費、不需任何帳號或 API Key，資料不外傳。</p>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+    <div class="text-[10px] sm:text-xs tracking-[0.25em] text-cyan-300">TW ADDRESS · 3+3 POSTAL CODE</div>
+    <h1 class="text-xl sm:text-2xl font-bold mt-1 leading-snug">台灣地址 3+3 碼郵遞區號查詢與檢核</h1>
+    <p class="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">依「中華郵政官方 3+3 投遞範圍資料」（約 8 萬筆）在瀏覽器內比對，自動補行政區、處理單雙號／巷號／之號／樓層分碼；比對不到再以免費 API 備援。完全免費、不需帳號，資料不外傳。</p>
   </div>
 </header>
 
-<main class="max-w-7xl mx-auto px-6 py-6 space-y-6">
-  <div id="dbStatus" class="rounded-xl border px-4 py-3 text-sm flex flex-wrap items-center gap-3 bg-sky-50 border-sky-200 text-sky-800">
-    <span id="dbMsg" class="flex-1">⏳ 準備載入中華郵政官方 3+3 投遞範圍資料…</span>
-    <button id="btnDbReload" class="px-3 py-1 rounded-md border border-current text-xs hover:bg-white/60">重新下載</button>
-    <button id="btnDbImport" class="px-3 py-1 rounded-md border border-current text-xs hover:bg-white/60">手動匯入資料檔</button>
-    <input id="dbFile" type="file" accept=".json" class="hidden">
-  </div>
+<main class="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
 
   <!-- ① 單筆查詢 -->
-  <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-3">
-    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2"><span class="w-7 h-7 rounded-full bg-cyan-600 text-white text-sm flex items-center justify-center">1</span>單筆查詢</h2>
-    <div class="flex gap-2">
-      <input id="oneAddr" type="text" placeholder="輸入任意地址，例如：臺中市台中工業區工業三十六路41號" class="flex-1 border border-slate-300 rounded-lg px-3 py-3 text-base">
-      <button id="btnOne" class="px-6 rounded-lg bg-cyan-700 hover:bg-cyan-800 text-white font-semibold disabled:bg-slate-300">查詢</button>
+  <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-3">
+    <h2 class="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2"><span class="w-7 h-7 shrink-0 rounded-full bg-cyan-600 text-white text-sm flex items-center justify-center">1</span>單筆查詢</h2>
+    <div class="flex flex-col sm:flex-row gap-2">
+      <input id="oneAddr" type="text" enterkeyhint="search" autocomplete="off" placeholder="輸入地址，例如：臺中市台中工業區工業三十六路41號" class="w-full sm:flex-1 min-w-0 border border-slate-300 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-cyan-400">
+      <button id="btnOne" class="w-full sm:w-auto px-6 py-3 rounded-lg bg-cyan-700 hover:bg-cyan-800 text-white text-base font-semibold disabled:bg-slate-300">查詢</button>
     </div>
     <div id="oneResult"></div>
   </section>
 
   <!-- ② 批次查詢 -->
-  <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-5">
-    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2"><span class="w-7 h-7 rounded-full bg-emerald-600 text-white text-sm flex items-center justify-center">2</span>批次查詢（上傳 Excel 補全 6 碼郵遞區號）</h2>
-    <div class="grid lg:grid-cols-2 gap-4">
-      <div id="dropZone" class="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center cursor-pointer transition-colors hover:bg-slate-50 flex flex-col justify-center">
-        <p class="text-slate-600">將 Excel 檔拖曳到這裡，或 <span class="text-cyan-700 underline">點擊選擇檔案</span></p>
-        <p class="text-xs text-slate-400 mt-1">.xlsx／.xlsm 保留原格式輸出；.xls／.xlsb／.csv／.ods 亦可讀取</p>
-        <p id="fileName" class="mt-2 text-sm text-cyan-700 font-semibold"></p>
+  <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-4 sm:space-y-5">
+    <h2 class="text-base sm:text-lg font-bold text-slate-800 flex items-start gap-2"><span class="w-7 h-7 shrink-0 rounded-full bg-emerald-600 text-white text-sm flex items-center justify-center">2</span><span>批次查詢<span class="block sm:inline text-xs sm:text-base font-normal text-slate-500 sm:text-slate-800 sm:font-bold">（上傳 Excel 補全 6 碼郵遞區號）</span></span></h2>
+    <div class="grid lg:grid-cols-2 gap-3 sm:gap-4">
+      <div id="dropZone" class="border-2 border-dashed border-slate-300 rounded-xl p-5 sm:p-6 text-center cursor-pointer transition-colors hover:bg-slate-50 flex flex-col justify-center">
+        <p class="text-slate-600 text-sm sm:text-base"><span class="hidden sm:inline">將 Excel 檔拖曳到這裡，或 </span><span class="text-cyan-700 underline font-semibold">點擊選擇 Excel 檔案</span></p>
+        <p class="text-xs text-slate-400 mt-1">.xlsx／.xlsm 保留原格式；.xls／.xlsb／.csv／.ods 亦可</p>
+        <p id="fileName" class="mt-2 text-sm text-cyan-700 font-semibold break-any"></p>
         <input id="fileInput" type="file" accept=".xlsx,.xlsm,.xltx,.xltm,.xls,.xlsb,.csv,.ods" class="hidden">
       </div>
       <div class="space-y-3">
         <div id="sheetWrap" class="hidden">
           <label class="block text-sm font-semibold text-slate-700 mb-1">工作表</label>
-          <select id="sheetSel" class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white"></select>
+          <select id="sheetSel" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-base sm:text-sm"></select>
         </div>
         <div>
           <label class="block text-sm font-semibold text-slate-700 mb-1">地址欄位（已自動辨識）</label>
-          <select id="colSelect" disabled class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white disabled:bg-slate-100"><option>請先上傳檔案</option></select>
+          <select id="colSelect" disabled class="w-full border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-base sm:text-sm disabled:bg-slate-100"><option>請先上傳檔案</option></select>
         </div>
-        <p class="text-xs text-slate-400">原本已有 6 碼郵遞區號的列沿用不查（如需確認是否正確，請用下方「③ 既有檔案郵遞區號檢核」）。</p>
+        <p class="text-xs text-slate-400">原本已有 6 碼郵遞區號的列沿用不查（要確認是否正確，請用下方「③ 既有檔案郵遞區號檢核」）。</p>
       </div>
     </div>
-    <div class="grid grid-cols-5 gap-3">
-      <button id="btnStart" disabled class="col-span-4 py-4 rounded-xl text-lg font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed shadow">一鍵補全 6 碼郵遞區號</button>
-      <button id="btnStop" disabled class="py-4 rounded-xl font-semibold text-red-600 border border-red-300 hover:bg-red-50 disabled:text-slate-300 disabled:border-slate-200 disabled:hover:bg-white">停止</button>
+    <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3">
+      <button id="btnStart" disabled class="col-span-2 sm:col-span-4 py-3 sm:py-4 rounded-xl text-base sm:text-lg font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed shadow-sm">一鍵補全 6 碼郵遞區號</button>
+      <button id="btnStop" disabled class="py-3 sm:py-4 rounded-xl font-semibold text-red-600 border border-red-300 hover:bg-red-50 disabled:text-slate-300 disabled:border-slate-200 disabled:hover:bg-white">停止</button>
     </div>
     <div>
-      <div class="flex justify-between text-sm text-slate-600 mb-1"><span id="statusText">請上傳 Excel 檔案。</span><span id="pctText" class="font-mono">0%</span></div>
+      <div class="flex justify-between gap-3 text-xs sm:text-sm text-slate-600 mb-1"><span id="statusText" class="break-any">請上傳 Excel 檔案。</span><span id="pctText" class="font-mono shrink-0">0%</span></div>
       <div class="w-full h-3 bg-slate-200 rounded-full overflow-hidden"><div id="progressBar" class="h-full bg-gradient-to-r from-cyan-500 to-emerald-500 transition-all duration-200" style="width:0%"></div></div>
     </div>
     <details>
-      <summary class="text-sm text-slate-500 cursor-pointer">處理明細</summary>
-      <div id="log" class="mt-2 h-48 overflow-y-auto bg-slate-900 text-xs rounded-xl p-3 space-y-0.5"></div>
+      <summary class="text-sm text-slate-500 cursor-pointer py-1">處理明細</summary>
+      <div id="log" class="mt-2 h-48 overflow-y-auto bg-slate-900 text-xs rounded-xl p-3 space-y-0.5 break-any"></div>
     </details>
-    <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t">
-      <h3 class="font-bold text-slate-800">即時成果預覽</h3>
-      <div class="flex flex-wrap items-center gap-2 text-sm">
-        <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800">成功 <b id="cOk">0</b></span>
-        <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-800">需覆核 <b id="cReview">0</b></span>
-        <span class="px-3 py-1 rounded-full bg-sky-100 text-sky-800">手動填入 <b id="cManual">0</b></span>
-        <span class="px-3 py-1 rounded-full bg-red-100 text-red-800">查無 <b id="cFail">0</b></span>
-        <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-800">已補行政區 <b id="cAi">0</b></span>
-        <select id="filterSel" class="border border-slate-300 rounded-lg px-2 py-1"><option value="all">顯示全部</option><option value="todo">只顯示待補查／覆核</option><option value="ai">只顯示有補行政區者</option></select>
+    <div class="pt-3 border-t border-slate-200 space-y-2">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h3 class="font-bold text-slate-800">即時成果預覽</h3>
+        <select id="filterSel" class="w-full sm:w-auto border border-slate-300 rounded-lg px-2 py-2 text-base sm:text-sm"><option value="all">顯示全部</option><option value="todo">只顯示待補查／覆核</option><option value="ai">只顯示有補行政區者</option></select>
+      </div>
+      <div class="flex flex-wrap gap-1.5 sm:gap-2 text-xs sm:text-sm">
+        <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">成功 <b id="cOk">0</b></span>
+        <span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800">需覆核 <b id="cReview">0</b></span>
+        <span class="px-2.5 py-1 rounded-full bg-sky-100 text-sky-800">手動填入 <b id="cManual">0</b></span>
+        <span class="px-2.5 py-1 rounded-full bg-red-100 text-red-800">查無 <b id="cFail">0</b></span>
+        <span class="px-2.5 py-1 rounded-full bg-blue-100 text-blue-800">已補行政區 <b id="cAi">0</b></span>
       </div>
     </div>
-    <div class="overflow-auto max-h-[560px] border border-slate-200 rounded-xl">
-      <table class="w-full text-sm">
+    <div class="scroll-box overflow-auto max-h-[560px] border border-slate-200 rounded-xl">
+      <table class="rtable w-full text-sm">
         <thead class="bg-slate-800 text-slate-100 sticky top-0 z-10 text-left">
           <tr><th class="px-2 py-2 w-12">列</th><th class="px-2 py-2">原始地址</th><th class="px-2 py-2">補全後完整地址</th><th class="px-2 py-2 w-28">3+3碼郵遞區號</th><th class="px-2 py-2 w-64">狀態與雙平臺單筆查詢</th></tr>
         </thead>
-        <tbody id="tbody"><tr><td colspan="5" class="px-3 py-8 text-center text-slate-400">尚無資料</td></tr></tbody>
+        <tbody id="tbody"><tr class="rt-empty"><td colspan="5" class="px-3 py-8 text-center text-slate-400">尚無資料</td></tr></tbody>
       </table>
     </div>
-    <p class="text-xs text-slate-500"><b class="text-blue-600">【藍色粗體】</b>為自動補上的縣市／行政區。郵遞區號欄可直接修改；✎ 可修改地址後重查。下載的 Excel 保留原有全部欄位與格式：郵遞區號填入原「郵遞區號」欄（沒有則新增），右側新增「補全與標準化地址」「查詢狀態與依據」。</p>
-    <button id="btnDownload" disabled class="w-full py-4 rounded-xl text-lg font-bold text-white bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed shadow">下載 Excel</button>
+    <p class="text-xs text-slate-500 leading-relaxed"><b class="text-blue-600">【藍色粗體】</b>為自動補上的縣市／行政區。郵遞區號欄可直接修改；✎ 可修改地址後重查。下載的 Excel 保留原有全部欄位與格式：郵遞區號填入原「郵遞區號」欄（沒有則新增），右側新增「補全與標準化地址」「查詢狀態與依據」。</p>
+    <button id="btnDownload" disabled class="w-full py-3 sm:py-4 rounded-xl text-base sm:text-lg font-bold text-white bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed shadow-sm">下載 Excel</button>
   </section>
 
   <!-- ③ 既有檔案郵遞區號檢核 -->
-  <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-5">
-    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2"><span class="w-7 h-7 rounded-full bg-violet-600 text-white text-sm flex items-center justify-center">3</span>既有檔案郵遞區號檢核</h2>
-    <p class="text-sm text-slate-500">上傳已填好郵遞區號的 Excel，逐筆依中華郵政官方投遞範圍比對，檢核郵遞區號是否正確；不修改原有資料，只在右側加上檢核結果。</p>
-    <div class="grid lg:grid-cols-2 gap-4">
-      <div id="ckDrop" class="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center cursor-pointer transition-colors hover:bg-slate-50 flex flex-col justify-center">
-        <p class="text-slate-600">將要檢核的 Excel 拖曳到這裡，或 <span class="text-violet-700 underline">點擊選擇檔案</span></p>
+  <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-4 sm:space-y-5">
+    <h2 class="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2"><span class="w-7 h-7 shrink-0 rounded-full bg-violet-600 text-white text-sm flex items-center justify-center">3</span>既有檔案郵遞區號檢核</h2>
+    <p class="text-xs sm:text-sm text-slate-500">上傳已填好郵遞區號的 Excel，逐筆依中華郵政官方投遞範圍比對，檢核郵遞區號是否正確；不修改原有資料，只在右側加上檢核結果。</p>
+    <div class="grid lg:grid-cols-2 gap-3 sm:gap-4">
+      <div id="ckDrop" class="border-2 border-dashed border-slate-300 rounded-xl p-5 sm:p-6 text-center cursor-pointer transition-colors hover:bg-slate-50 flex flex-col justify-center">
+        <p class="text-slate-600 text-sm sm:text-base"><span class="hidden sm:inline">將要檢核的 Excel 拖曳到這裡，或 </span><span class="text-violet-700 underline font-semibold">點擊選擇要檢核的 Excel</span></p>
         <p class="text-xs text-slate-400 mt-1">檔案需含「地址」欄與「郵遞區號」欄</p>
-        <p id="ckFileName" class="mt-2 text-sm text-violet-700 font-semibold"></p>
+        <p id="ckFileName" class="mt-2 text-sm text-violet-700 font-semibold break-any"></p>
         <input id="ckFile" type="file" accept=".xlsx,.xlsm,.xltx,.xltm,.xls,.xlsb,.csv,.ods" class="hidden">
       </div>
       <div class="space-y-3">
         <div id="ckSheetWrap" class="hidden">
           <label class="block text-sm font-semibold text-slate-700 mb-1">工作表</label>
-          <select id="ckSheet" class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white"></select>
+          <select id="ckSheet" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-base sm:text-sm"></select>
         </div>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-sm font-semibold text-slate-700 mb-1">地址欄位</label>
-            <select id="ckAddrCol" disabled class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white disabled:bg-slate-100"><option>請先上傳檔案</option></select>
+            <select id="ckAddrCol" disabled class="w-full border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-base sm:text-sm disabled:bg-slate-100"><option>請先上傳檔案</option></select>
           </div>
           <div>
             <label class="block text-sm font-semibold text-slate-700 mb-1">郵遞區號欄位</label>
-            <select id="ckZipCol" disabled class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white disabled:bg-slate-100"><option>請先上傳檔案</option></select>
+            <select id="ckZipCol" disabled class="w-full border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-base sm:text-sm disabled:bg-slate-100"><option>請先上傳檔案</option></select>
           </div>
         </div>
       </div>
     </div>
-    <div class="grid grid-cols-5 gap-3">
-      <button id="ckStart" disabled class="col-span-4 py-4 rounded-xl text-lg font-bold text-white bg-violet-600 hover:bg-violet-700 disabled:bg-slate-300 disabled:cursor-not-allowed shadow">開始檢核</button>
-      <button id="ckStop" disabled class="py-4 rounded-xl font-semibold text-red-600 border border-red-300 hover:bg-red-50 disabled:text-slate-300 disabled:border-slate-200 disabled:hover:bg-white">停止</button>
+    <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3">
+      <button id="ckStart" disabled class="col-span-2 sm:col-span-4 py-3 sm:py-4 rounded-xl text-base sm:text-lg font-bold text-white bg-violet-600 hover:bg-violet-700 disabled:bg-slate-300 disabled:cursor-not-allowed shadow-sm">開始檢核</button>
+      <button id="ckStop" disabled class="py-3 sm:py-4 rounded-xl font-semibold text-red-600 border border-red-300 hover:bg-red-50 disabled:text-slate-300 disabled:border-slate-200 disabled:hover:bg-white">停止</button>
     </div>
     <div>
-      <div class="flex justify-between text-sm text-slate-600 mb-1"><span id="ckStatus">請上傳要檢核的 Excel。</span><span id="ckPct" class="font-mono">0%</span></div>
+      <div class="flex justify-between gap-3 text-xs sm:text-sm text-slate-600 mb-1"><span id="ckStatus" class="break-any">請上傳要檢核的 Excel。</span><span id="ckPct" class="font-mono shrink-0">0%</span></div>
       <div class="w-full h-3 bg-slate-200 rounded-full overflow-hidden"><div id="ckBar" class="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 transition-all duration-200" style="width:0%"></div></div>
     </div>
-    <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t">
-      <h3 class="font-bold text-slate-800">檢核結果</h3>
-      <div class="flex flex-wrap items-center gap-2 text-sm">
-        <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800">正確 <b id="kOk">0</b></span>
-        <span class="px-3 py-1 rounded-full bg-red-100 text-red-800">錯誤 <b id="kBad">0</b></span>
-        <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-800">不完整／需確認 <b id="kWarn">0</b></span>
-        <span class="px-3 py-1 rounded-full bg-slate-200 text-slate-700">無法比對 <b id="kNa">0</b></span>
-        <select id="ckFilter" class="border border-slate-300 rounded-lg px-2 py-1"><option value="all">顯示全部</option><option value="issue">只顯示有問題者</option></select>
+    <div class="pt-3 border-t border-slate-200 space-y-2">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h3 class="font-bold text-slate-800">檢核結果</h3>
+        <select id="ckFilter" class="w-full sm:w-auto border border-slate-300 rounded-lg px-2 py-2 text-base sm:text-sm"><option value="all">顯示全部</option><option value="issue">只顯示有問題者</option></select>
+      </div>
+      <div class="flex flex-wrap gap-1.5 sm:gap-2 text-xs sm:text-sm">
+        <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">正確 <b id="kOk">0</b></span>
+        <span class="px-2.5 py-1 rounded-full bg-red-100 text-red-800">錯誤 <b id="kBad">0</b></span>
+        <span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800">需確認 <b id="kWarn">0</b></span>
+        <span class="px-2.5 py-1 rounded-full bg-slate-200 text-slate-700">無法比對 <b id="kNa">0</b></span>
       </div>
     </div>
-    <div class="overflow-auto max-h-[560px] border border-slate-200 rounded-xl">
-      <table class="w-full text-sm">
+    <div class="scroll-box overflow-auto max-h-[560px] border border-slate-200 rounded-xl">
+      <table class="rtable w-full text-sm">
         <thead class="bg-slate-800 text-slate-100 sticky top-0 z-10 text-left">
           <tr><th class="px-2 py-2 w-12">列</th><th class="px-2 py-2">地址</th><th class="px-2 py-2 w-28">原郵遞區號</th><th class="px-2 py-2 w-28">官方比對結果</th><th class="px-2 py-2 w-80">檢核結果與依據</th></tr>
         </thead>
-        <tbody id="ckBody"><tr><td colspan="5" class="px-3 py-8 text-center text-slate-400">尚無資料</td></tr></tbody>
+        <tbody id="ckBody"><tr class="rt-empty"><td colspan="5" class="px-3 py-8 text-center text-slate-400">尚無資料</td></tr></tbody>
       </table>
     </div>
-    <p class="text-xs text-slate-500">下載的檢核報告保留原有全部欄位與格式，不更動原郵遞區號；右側新增「郵遞區號檢核結果」「建議郵遞區號」「檢核依據」三欄。</p>
-    <button id="ckDownload" disabled class="w-full py-4 rounded-xl text-lg font-bold text-white bg-violet-700 hover:bg-violet-800 disabled:bg-slate-300 disabled:cursor-not-allowed shadow">下載檢核報告 Excel</button>
+    <p class="text-xs text-slate-500 leading-relaxed">下載的檢核報告保留原有全部欄位與格式，不更動原郵遞區號；右側新增「郵遞區號檢核結果」「建議郵遞區號」「檢核依據」三欄。</p>
+    <button id="ckDownload" disabled class="w-full py-3 sm:py-4 rounded-xl text-base sm:text-lg font-bold text-white bg-violet-700 hover:bg-violet-800 disabled:bg-slate-300 disabled:cursor-not-allowed shadow-sm">下載檢核報告 Excel</button>
   </section>
 
-  <footer class="text-xs text-slate-400 text-center leading-relaxed pb-6">
+  <!-- 官方資料狀態（頁面最下方） -->
+  <div id="dbStatus" class="rounded-xl border px-4 py-3 text-xs sm:text-sm flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-3 bg-sky-50 border-sky-200 text-sky-800">
+    <span id="dbMsg" class="sm:flex-1 break-any">準備載入中華郵政官方 3+3 投遞範圍資料…</span>
+    <div class="flex gap-2">
+      <button id="btnDbReload" class="flex-1 sm:flex-none px-3 py-2 sm:py-1 rounded-md border border-current text-xs hover:bg-white/60">重新下載</button>
+      <button id="btnDbImport" class="flex-1 sm:flex-none px-3 py-2 sm:py-1 rounded-md border border-current text-xs hover:bg-white/60">手動匯入資料檔</button>
+    </div>
+    <input id="dbFile" type="file" accept=".json" class="hidden">
+  </div>
+
+  <footer class="text-xs text-slate-400 text-center leading-relaxed pb-6 px-2">
     免費公開查詢來源：<a class="underline" href="https://zip5.5432.tw" target="_blank" rel="noopener">zip5.5432.tw</a>、<a class="underline" href="https://ziptw.com" target="_blank" rel="noopener">ziptw.com</a>（皆以中華郵政資料為基礎，非官方）。官方平臺：
     <a class="underline" href="https://nsda.post.gov.tw/Frontend/StandardAddressTransition/" target="_blank" rel="noopener">全國標準郵遞地址服務平臺</a>、
     <a class="underline" href="https://www.post.gov.tw/post/internet/Postal/index.jsp?ID=208" target="_blank" rel="noopener">中華郵政 3+3 郵遞區號查詢</a>。正式寄件請以官方為準。
   </footer>
 </main>
 
-<div id="modal" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 space-y-4">
-    <div class="flex justify-between items-start gap-4">
-      <div><h3 id="mTitle" class="text-lg font-bold text-slate-800"></h3><p id="mIntro" class="text-xs text-slate-500 mt-1"></p></div>
-      <button id="modalClose" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+<div id="modal" class="hidden fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+  <div class="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto p-4 sm:p-6 space-y-4">
+    <div class="flex justify-between items-start gap-3">
+      <div class="min-w-0"><h3 id="mTitle" class="text-base sm:text-lg font-bold text-slate-800"></h3><p id="mIntro" class="text-xs text-slate-500 mt-1"></p></div>
+      <button id="modalClose" aria-label="關閉" class="shrink-0 w-9 h-9 -mr-1 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 text-2xl leading-none">&times;</button>
     </div>
-    <div class="text-sm bg-slate-50 rounded-lg p-3">原始地址：<b id="mOrig"></b><div id="mNote" class="text-xs text-slate-500 mt-1"></div></div>
+    <div class="text-sm bg-slate-50 rounded-lg p-3 break-any">原始地址：<b id="mOrig"></b><div id="mNote" class="text-xs text-slate-500 mt-1"></div></div>
     <div id="mFields" class="space-y-2"></div>
-    <button id="mOpen" class="w-full py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold"></button>
-    <div class="border-t pt-4">
+    <button id="mOpen" class="w-full py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold"></button>
+    <div class="border-t border-slate-200 pt-4">
       <label class="block text-sm font-semibold text-slate-700 mb-1">官方平臺查到的 3+3 郵遞區號</label>
       <div class="flex gap-2">
-        <input id="mZip" inputmode="numeric" maxlength="6" placeholder="例：407291" class="flex-1 border border-slate-300 rounded-lg px-3 py-2 font-mono text-lg tracking-widest">
+        <input id="mZip" inputmode="numeric" maxlength="6" placeholder="例：407291" class="flex-1 min-w-0 border border-slate-300 rounded-lg px-3 py-2 font-mono text-lg tracking-widest">
         <button id="mSave" class="px-5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold">填入</button>
       </div>
       <p id="mErr" class="text-xs text-red-600 mt-1"></p>
     </div>
-    <div class="flex justify-end text-sm"><button id="mNext" class="text-slate-600 underline">填入並前往下一筆待補查 →</button></div>
+    <div class="flex justify-end text-sm pb-1"><button id="mNext" class="text-slate-600 underline py-1">填入並前往下一筆待補查 →</button></div>
   </div>
 </div>
 <script>
@@ -192,7 +216,6 @@ async function streamBytes(u8, ts) { return new Uint8Array(await new Response(ne
 const inflateRaw = u8 => streamBytes(u8, new DecompressionStream('deflate-raw'));
 const deflateRaw = u8 => streamBytes(u8, new CompressionStream('deflate-raw'));
 const isZip = u8 => u8.length > 4 && u8[0] === 0x50 && u8[1] === 0x4B && u8[2] === 3 && u8[3] === 4;
-
 function readZip(u8) {
   const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
   let eocd = -1;
@@ -237,7 +260,6 @@ async function writeZip(files) {
   ev.setUint32(0, 0x06054b50, true); ev.setUint16(8, files.length, true); ev.setUint16(10, files.length, true); ev.setUint32(12, cds, true); ev.setUint32(16, off, true);
   return new Blob([...parts, ...cd, e], { type: 'application/octet-stream' });
 }
-
 const XML_ENT = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
 const xmlDec = s => String(s).replace(/&(#x[0-9a-f]+|#\d+|\w+);/gi, (m, e) => e[0] === '#' ? String.fromCodePoint(/^#x/i.test(e) ? parseInt(e.slice(2), 16) : +e.slice(1)) : (XML_ENT[e] ?? m));
 const xmlEsc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
@@ -247,7 +269,6 @@ function colName(c) { let s = ''; c++; while (c > 0) { const m = (c - 1) % 26; s
 function numStr(v) { const n = Number(v); return !isFinite(n) ? String(v) : Number.isInteger(n) ? String(n) : String(+n.toPrecision(15)); }
 function siText(inner) { let s = ''; inner.replace(/<rPh\b[\s\S]*?<\/rPh>/g, '').replace(/<t\b[^>]*>([\s\S]*?)<\/t>/g, (m, t) => { s += t; return ''; }); return xmlDec(s); }
 function relTarget(base, t) { if (t.startsWith('/')) return t.slice(1); const out = []; for (const p of (base + t).split('/')) { if (p === '..') out.pop(); else if (p !== '.') out.push(p); } return out.join('/'); }
-
 async function readXlsx(u8) {
   const entries = readZip(u8);
   const wb = await zipText(entries, 'xl/workbook.xml');
@@ -350,7 +371,7 @@ async function writeXlsxPatched(book, path, edits, headerRow = -1) {
   }
   return writeZip(files);
 }
-/* ===== 地址解析、驗證與公開 API 查詢 ===== */
+/* ===== 地址解析 ===== */
 const DISTRICTS = {
   "臺北市":"中正區,大同區,中山區,松山區,大安區,萬華區,信義區,士林區,北投區,內湖區,南港區,文山區",
   "基隆市":"仁愛區,信義區,中正區,中山區,安樂區,暖暖區,七堵區",
@@ -378,7 +399,6 @@ const DISTRICTS = {
 for (const k in DISTRICTS) DISTRICTS[k] = DISTRICTS[k].split(',').sort((a, b) => b.length - a.length);
 const CITY_ALIAS = { "臺北縣": "新北市", "桃園縣": "桃園市", "臺中縣": "臺中市", "臺南縣": "臺南市", "高雄縣": "高雄市" };
 const CITY_NAMES = [...Object.keys(DISTRICTS), ...Object.keys(CITY_ALIAS)];
-
 const CN = { '零': 0, '〇': 0, '○': 0, '一': 1, '二': 2, '兩': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9 };
 function cnToNum(s) {
   if (/[十百千]/.test(s)) {
@@ -411,7 +431,6 @@ function preClean(raw) {
   s = s.replace(/樓[-－—‐](\d)/g, '樓之$1');
   return s;
 }
-
 /* 拆解地址：{city, district, village, road, section, lane, alley, number, floor, rest} */
 function splitAddr(raw) {
   let s = preClean(raw);
@@ -441,12 +460,6 @@ function splitAddr(raw) {
 }
 const baseAddr = o => o.city + o.district + o.road + o.section + o.lane + o.alley + o.number;
 const fullAddr = o => o.city + o.district + (o.village || '') + o.road + o.section + o.lane + o.alley + o.number + (o.floor || '');
-/* 門牌數字指紋（巷、弄、號、之），用來檢查 AI 是否改動門牌 */
-function houseNums(s) {
-  const t = preClean(s).replace(/(?:地下)?\d+樓(?:之\d+)?/g, ''), out = [];
-  for (const m of t.matchAll(/(\d+)(?=[巷弄號之])|之(\d+)/g)) out.push(m[1] || m[2]);
-  return out.sort().join(',');
-}
 /* 送查地址候選：含樓層 → 不含樓層；臺中「工業N路」另試「工業區N路」 */
 function variantsFrom(o) {
   const list = [];
@@ -468,7 +481,6 @@ function queryVariants(raw) {
   if (!list.some(v => v.q === cleaned)) list.push({ q: cleaned, floorless: false });
   return { parts: o, variants: list };
 }
-
 /* 未寫縣市時，用全國唯一的行政區名稱推回縣市 */
 function inferCity(o, raw) {
   if (o.city) return o;
@@ -477,7 +489,6 @@ function inferCity(o, raw) {
   if (hits.length === 1) { const [c] = hits[0]; return splitAddr(c + s); }
   return o;
 }
-
 /* ===================== 中華郵政官方 3+3 投遞範圍資料庫（本機比對引擎） =====================
    資料：中華郵政「3+3 郵遞區號應用系統」rall1.dbf 轉成的 JSON（約 8 萬筆，每月自動更新）
    來源：GitHub gnehs/TaiwanZipcode（經 jsDelivr／GitHub Raw 取得，免費、免登入、支援 CORS）
@@ -488,7 +499,6 @@ const DB_SOURCES = [
   'https://cdn.jsdelivr.net/npm/@t1ckbase/tw-zipcode-data'
 ];
 const DB_TTL = 30 * 864e5;   // 30 天後背景更新
-
 /* 比對用正規化：全形→半形、去空白、台→臺、所有中文數字→阿拉伯數字（資料與地址兩邊一致處理） */
 function rk(s) {
   s = String(s ?? '').replace(/[\uFF01-\uFF5E]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
@@ -496,10 +506,8 @@ function rk(s) {
   s = s.replace(/[零〇○一二兩三四五六七八九十百千]+/g, m => cnToNum(m));
   return s.replace(/(\d)[-－—‐](\d)/g, '$1之$2');
 }
-
 /* 名稱正規化（縣市、行政區用）：不轉換中文數字，避免「三民區」被改成「3民區」 */
 function rkName(s) { return String(s ?? '').replace(/[\uFF01-\uFF5E]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).replace(/[\s\u3000]+/g, '').replace(/台/g, '臺'); }
-
 /* ---------- 通用攤平：可接受「扁平陣列」或「縣市→區→路→範圍」巢狀等各種 JSON 結構 ---------- */
 const K_ZIP = /^(zip(code)?(_?33|6)?|zip5|zipcode6|郵遞區號|postcode|code)$/i;
 const K_SCOPE = /^(scope|scoop|range|投遞範圍|範圍)$/i;
@@ -547,7 +555,6 @@ function flattenZipData(root) {
   walk(root, []);
   return out;
 }
-
 /* ---------- 投遞範圍字串解析（單／雙／連、以上／以下、至、巷、弄、之、附號、樓層） ---------- */
 function scopeTok(t) {
   const m = /^(\d+)?(?:巷|號)?(?:之(\d+))?號?$/.exec(t);
@@ -620,7 +627,6 @@ function ruleHit(p, a) {
   if (p.fLo != null) { if (a.floor == null) fb = -1; else if (a.floor < p.fLo || a.floor > p.fHi) return null; else fb = 1; }
   return { cls, width, fb };
 }
-
 /* ---------- 資料庫：索引、載入、快取 ---------- */
 const ZIPDB = { ready: false, count: 0, src: '', ver: '', idx: new Map(), roads: new Map(), unparsed: 0 };
 function buildIndex(rows) {
@@ -675,7 +681,6 @@ async function importZipDBFile(file) {
   buildIndex(rows); ZIPDB.src = file.name; ZIPDB.ver = new Date().toLocaleDateString('zh-TW');
   try { await idbSet('db', { rows, src: file.name, t: Date.now() }); } catch (e) {}
 }
-
 /* ---------- 本機比對 ---------- */
 /* 在某縣市／區內，從地址字串找出路名，再依門牌比對規則 */
 function matchInArea(city, area, body) {
@@ -718,7 +723,6 @@ function localLookup(raw, parts) {
     if (body.startsWith(dk)) body = body.slice(dk.length);
     else { const mm = new RegExp('^' + dk.slice(0, -1) + '(?:[區鄉鎮市]|工業區|科學園區)').exec(body); if (mm) body = body.slice(mm[0].length); }
   }
-  body = body.replace(/^[^\d路街道段巷弄號]{1,4}?[村里](?=[^\d]*?\d)/, m => m);   // 村里保留，路名搜尋會略過
   // 地址寫法變體：原樣 → 去掉開頭的園區／工業區名稱 → 「工業N路」改「工業區N路」
   const bodies = [body];
   const add = b => { if (b && !bodies.includes(b)) bodies.push(b); };
@@ -793,7 +797,6 @@ async function lookupVariants(variants, ctx, only) {
   return { zip: '', status: 'fail', query: variants[0]?.q || '', place: null, candidates: [], transient: netErr && usable.length > 0,
     note: !usable.length ? '免費查詢來源目前無法使用' : netErr ? '查詢失敗：' + [...new Set(errors)].join('；') : '免費來源查無' };
 }
-
 /* 單筆完整處理 */
 async function resolveAddress(raw, ctx, onProgress) {
   const orig = splitAddr(raw);
@@ -801,14 +804,13 @@ async function resolveAddress(raw, ctx, onProgress) {
   const added = { city: !orig.city && !!parts.city, district: false };
   const steps = [];
   let res = null;
-
   // ① 中華郵政官方投遞範圍：本機比對（主要方法，不需逐筆連線）
   if (ZIPDB.ready && parts.city) {
     onProgress && onProgress('比對中華郵政官方投遞範圍');
     const lr = localLookup(raw, parts);
     if (lr && lr.zip) {
-      if (!parts.district || lr.moved) { if (!parts.district) added.district = true; }
       const had = parts.district;
+      if (!had) added.district = true;
       parts = { ...parts, district: lr.district };
       res = { zip: lr.zip, status: lr.moved || lr.floorUnsure ? 'review' : 'ok', query: '', candidates: [], note: `依中華郵政官方投遞範圍：${lr.rule}` };
       if (!had) steps.push(`自動補行政區：${lr.district}`);
@@ -823,7 +825,6 @@ async function resolveAddress(raw, ctx, onProgress) {
       res = { zip: '', status: 'conflict', query: '', candidates: lr.candidates, note: lr.multiDistrict ? `此路名在 ${lr.multiDistrict.join('、')} 都有，請選擇` : '依官方投遞範圍有多個候選（多為樓層分碼），請選擇' };
     }
   }
-
   // ② 免費 API 備援（官方資料未載入或未比對到時）
   if (!res) {
     onProgress && onProgress('以免費 API 查詢');
@@ -845,7 +846,7 @@ async function resolveAddress(raw, ctx, onProgress) {
       if (ud.length === 1) { parts = { ...parts, district: ud[0] }; added.district = true; res = { zip: hits[0].zip, status: 'ok', query: '', candidates: [], note: '免費來源：zip5.5432.tw' }; steps.push(`逐區比對唯一符合：${ud[0]}`); }
       else if (ud.length > 1) res = { zip: '', status: 'conflict', query: '', candidates: hits.map(h => ({ src: h.district, zip: h.zip })), note: `此路名在 ${ud.join('、')} 都有，請選擇` };
     }
-    if (!res.zip && res.status === 'fail' && !ZIPDB.ready) steps.push('官方投遞範圍資料尚未載入（請見頁面上方提示）');
+    if (!res.zip && res.status === 'fail' && !ZIPDB.ready) steps.push('官方投遞範圍資料尚未載入（請見頁面最下方狀態列）');
   }
   res.note = [res.note, ...steps].filter(Boolean).join('｜');
   return { parts, added, res };
@@ -863,6 +864,7 @@ const POST208_URL = 'https://www.post.gov.tw/post/internet/Postal/index.jsp?ID=2
 const $ = id => document.getElementById(id);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const EMPTY_ROW = msg => `<tr class="rt-empty"><td colspan="5" class="px-3 py-8 text-center text-slate-400">${msg}</td></tr>`;
 const STATUS = {
   pending: ['等待處理', 'bg-slate-100 text-slate-500'],
   ok: ['成功', 'bg-emerald-100 text-emerald-700'],
@@ -874,26 +876,24 @@ const STATUS = {
 const TODO = ['fail', 'conflict', 'review'];
 let book = null, sheet = null, fileName = '', headerRow = 0, records = [], running = false, stopFlag = false;
 let modalRec = null, modalCb = null, singleRec = null;
-
 const DELAY = 2000;   // 來源網站要求每次查詢間隔 2–3 秒
 const DISABLED = new Set();   // 本次開啟期間已確認無法使用的免費來源
 function newCtx() { return { sources: ['zip5', 'ziptw'], disabled: DISABLED, wait: () => sleep(DELAY), stop: () => stopFlag,
   onDisable: (k, m) => log(`${SOURCES[k].label} 無法使用（${m}），本次改用其他方法。`, 'text-amber-300') }; }
-
-/* ---------- 中華郵政官方資料載入狀態 ---------- */
+/* ---------- 中華郵政官方資料載入狀態（頁面最下方） ---------- */
 let dbLoading = null;
 function dbStatus(msg, kind) {
   const el = $('dbStatus'); if (!el) return;
   const cls = { ok: 'bg-emerald-50 border-emerald-200 text-emerald-800', warn: 'bg-amber-50 border-amber-200 text-amber-800', err: 'bg-red-50 border-red-200 text-red-800', load: 'bg-sky-50 border-sky-200 text-sky-800' }[kind];
-  el.className = 'rounded-xl border px-4 py-3 text-sm flex flex-wrap items-center gap-3 ' + cls;
+  el.className = 'rounded-xl border px-4 py-3 text-xs sm:text-sm flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-3 ' + cls;
   $('dbMsg').innerHTML = msg;
 }
 function startDB(force) {
-  dbStatus('⏳ 正在載入中華郵政官方 3+3 投遞範圍資料（約 8 萬筆，首次約需 10～30 秒，之後存在瀏覽器免再下載）…', 'load');
-  dbLoading = loadZipDB(m => { if (m) dbStatus('⏳ ' + esc(m), 'load'); }, force).then(() => {
-    dbStatus(`✅ 已載入中華郵政官方 3+3 投遞範圍資料 <b>${ZIPDB.count.toLocaleString()}</b> 筆（${esc(ZIPDB.ver)} 取得）。地址將直接依官方規則比對，不需逐筆連線。`, 'ok');
+  dbStatus('正在載入中華郵政官方 3+3 投遞範圍資料（約 8 萬筆，首次約需 10～30 秒，之後存在瀏覽器免再下載）…', 'load');
+  dbLoading = loadZipDB(m => { if (m) dbStatus('' + esc(m), 'load'); }, force).then(() => {
+    dbStatus(`已載入中華郵政官方 3+3 投遞範圍資料 <b>${ZIPDB.count.toLocaleString()}</b> 筆（${esc(ZIPDB.ver)} 取得）。地址將直接依官方規則比對，不需逐筆連線。`, 'ok');
   }).catch(e => {
-    dbStatus(`⚠️ 官方投遞範圍資料下載失敗（${esc(e.message)}）。目前改用免費 API 查詢，部分地址可能查無。可按「重新下載」，或手動匯入官方資料 JSON 檔。`, 'err');
+    dbStatus(`官方投遞範圍資料下載失敗（${esc(e.message)}）。目前改用免費 API 查詢，部分地址可能查無。可按「重新下載」，或手動匯入官方資料 JSON 檔。`, 'err');
   }).finally(() => { dbLoading = null; });
   return dbLoading;
 }
@@ -901,20 +901,18 @@ $('btnDbReload').addEventListener('click', () => { if (!dbLoading && !running) s
 $('btnDbImport').addEventListener('click', () => $('dbFile').click());
 $('dbFile').addEventListener('change', async e => {
   const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-  try { dbStatus('⏳ 匯入中…', 'load'); await importZipDBFile(f); dbStatus(`✅ 已匯入官方投遞範圍資料 <b>${ZIPDB.count.toLocaleString()}</b> 筆（${esc(f.name)}）。`, 'ok'); }
-  catch (er) { dbStatus('⚠️ 匯入失敗：' + esc(er.message), 'err'); }
+  try { dbStatus('匯入中…', 'load'); await importZipDBFile(f); dbStatus(`已匯入官方投遞範圍資料 <b>${ZIPDB.count.toLocaleString()}</b> 筆（${esc(f.name)}）。`, 'ok'); }
+  catch (er) { dbStatus('匯入失敗：' + esc(er.message), 'err'); }
 });
 startDB(false);
-
-/* ---------- 核心：單筆處理（批次與單筆測試共用） ---------- */
+/* ---------- 核心：單筆處理（批次、單筆、檢核共用） ---------- */
 async function processAddress(original, ctx, onProgress) {
   const { parts, added, res } = await resolveAddress(original, ctx, onProgress);
   const completed = parts.number ? fullAddr(parts) : preClean(original);
-  const r = { parts, added, completed, zip: res.zip, status: res.status, candidates: res.candidates, transient: res.transient, query: res.query, note: res.note };
+  const r = { parts, added, completed, zip: res.zip, status: res.status, candidates: res.candidates || [], transient: res.transient, query: res.query, note: res.note };
   r.apiZip = r.zip; r.apiStatus = r.status; r.apiNote = r.note;
   return r;
 }
-
 /* 補全地址 HTML：自動補上的縣市／行政區以藍色粗體【】標示 */
 function completedHTML(r) {
   if (!r.completed) return '';
@@ -924,63 +922,71 @@ function completedHTML(r) {
   const head = a.city && a.district ? tag(p.city + p.district) : (a.city ? tag(p.city) : esc(p.city)) + (a.district ? tag(p.district) : esc(p.district));
   return head + esc(p.village + p.road + p.section + p.lane + p.alley + p.number + p.floor);
 }
-
-/* ---------- 單筆即時測試 ---------- */
+/* ---------- ① 單筆查詢 ---------- */
 $('btnOne').addEventListener('click', async () => {
-  if (dbLoading) { $('oneResult').innerHTML = '<div class="text-sm text-slate-500 animate-pulse">等待官方資料載入…</div>'; await dbLoading; }
   const addr = $('oneAddr').value.trim(); if (!addr) { $('oneAddr').focus(); return; }
-  $('btnOne').disabled = true; $('oneResult').innerHTML = '<div class="text-sm text-slate-500 animate-pulse">查詢中…</div>';
+  $('btnOne').disabled = true;
+  if (dbLoading) { $('oneResult').innerHTML = '<div class="text-sm text-slate-500 animate-pulse">等待官方資料載入…（狀態見頁面最下方）</div>'; await dbLoading; }
+  $('oneResult').innerHTML = '<div class="text-sm text-slate-500 animate-pulse">查詢中…</div>';
   try {
     const ctx = newCtx(); ctx.wait = () => sleep(300); ctx.stop = () => false;
     const r = await processAddress(addr, ctx, t => { $('oneResult').innerHTML = `<div class="text-sm text-slate-500 animate-pulse">${esc(t)}</div>`; });
     singleRec = { original: addr, existing: '', ...r };
     renderSingle();
   } catch (e) { $('oneResult').innerHTML = `<div class="text-sm text-red-600">處理失敗：${esc(e.message)}</div>`; }
-  finally { $('btnOne').disabled = false; }
+  finally { $('btnOne').disabled = running; }
 });
-$('oneAddr').addEventListener('keydown', e => { if (e.key === 'Enter') $('btnOne').click(); });
+$('oneAddr').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('btnOne').click(); } });
 function renderSingle() {
   const r = singleRec, p = r.parts, [label, cls] = STATUS[r.status];
-  $('oneResult').innerHTML = `<div class="rounded-xl border border-slate-200 p-4 space-y-2 bg-slate-50">
-    <div class="text-sm"><span class="text-slate-500">補全後完整地址：</span><span class="text-base">${completedHTML(r)}</span></div>
-    <div class="flex flex-wrap gap-2 text-xs">${[['縣市', p.city], ['行政區', p.district], ['路街', p.road + p.section], ['巷弄', p.lane + p.alley], ['門牌', p.number], ['樓層', p.floor]]
-      .map(([k, v]) => `<span class="px-2 py-1 rounded bg-white border border-slate-200"><span class="text-slate-400">${k}</span> ${esc(v) || '—'}</span>`).join('')}</div>
-    <div class="flex flex-wrap items-center gap-3"><span class="text-slate-500 text-sm">3+3碼郵遞區號：</span>
-      <span class="font-mono text-2xl font-bold tracking-widest ${r.zip ? 'text-emerald-700' : 'text-slate-300'}">${r.zip || '——————'}</span>
+  $('oneResult').innerHTML = `<div class="rounded-xl border border-slate-200 p-3 sm:p-4 space-y-3 bg-slate-50">
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+      <span class="font-mono text-3xl font-bold tracking-widest ${r.zip ? 'text-emerald-700' : 'text-slate-300'}">${r.zip || '——————'}</span>
       <span class="px-2 py-0.5 rounded-full text-xs font-semibold ${cls}">${label}</span>
-      ${r.candidates.map(c => `<button data-pick="${c.zip}" class="px-2 py-0.5 rounded border border-amber-400 text-amber-800 text-xs hover:bg-amber-50">採用 ${c.zip}（${esc(c.src)}）</button>`).join('')}</div>
-    <div class="text-xs text-slate-500">${esc(r.note)}</div>
-    <div class="flex gap-2 pt-1">
-      <button data-one="nsda" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold">nsda 標準化</button>
-      <button data-one="post" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold">郵政 208 查詢</button></div></div>`;
+      ${r.zip ? '<button data-copyzip class="px-3 py-2 rounded-md border border-slate-300 text-xs text-slate-600 hover:bg-white">複製郵遞區號</button>' : ''}
+    </div>
+    ${r.candidates.length ? `<div class="flex flex-wrap gap-1.5">${r.candidates.map(c => `<button data-pick="${c.zip}" class="px-2.5 py-1.5 rounded-md border border-amber-400 text-amber-800 text-xs hover:bg-amber-50 text-left">採用 <b class="font-mono">${c.zip}</b>（${esc(c.src)}）</button>`).join('')}</div>` : ''}
+    <div class="text-sm break-any"><span class="text-slate-500">補全後完整地址：</span>${completedHTML(r)}</div>
+    <div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-1.5 text-xs">${[['縣市', p.city], ['行政區', p.district], ['路街', p.road + p.section], ['巷弄', p.lane + p.alley], ['門牌', p.number], ['樓層', p.floor]]
+      .map(([k, v]) => `<span class="px-2 py-1 rounded bg-white border border-slate-200 break-any"><span class="text-slate-400">${k}</span> ${esc(v) || '—'}</span>`).join('')}</div>
+    <div class="text-xs text-slate-500 break-any">${esc(r.note)}</div>
+    <div class="grid grid-cols-2 sm:flex gap-2">
+      <button data-one="nsda" class="px-3 py-2.5 sm:py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold">nsda 標準化</button>
+      <button data-one="post" class="px-3 py-2.5 sm:py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold">郵政 208 查詢</button></div></div>`;
 }
-$('oneResult').addEventListener('click', e => {
-  const t = e.target;
+$('oneResult').addEventListener('click', async e => {
+  const t = e.target.closest('button'); if (!t) return;
   if (t.dataset.pick) { applyZip(singleRec, t.dataset.pick); renderSingle(); }
   if (t.dataset.one) openHelper(t.dataset.one, singleRec, () => renderSingle());
+  if (t.hasAttribute('data-copyzip')) { await copyText(singleRec.zip); t.textContent = '已複製'; setTimeout(() => { t.textContent = '複製郵遞區號'; }, 1200); }
 });
-
-/* ---------- 上傳 Excel ---------- */
+async function copyText(v) {
+  try { await navigator.clipboard.writeText(v); }
+  catch (err) { const t = document.createElement('textarea'); t.value = v; t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
+}
+/* ---------- ② 批次查詢：上傳 Excel ---------- */
 const dropZone = $('dropZone'), fileInput = $('fileInput');
 dropZone.addEventListener('click', () => fileInput.click());
 ['dragenter', 'dragover'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.add('dragover'); }));
 ['dragleave', 'drop'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.remove('dragover'); }));
 dropZone.addEventListener('drop', e => { if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); });
 fileInput.addEventListener('change', e => { if (e.target.files[0]) loadFile(e.target.files[0]); e.target.value = ''; });
-
+async function readBook(file) {
+  const u8 = new Uint8Array(await file.arrayBuffer());
+  let b = null;
+  if (isZip(u8)) { try { b = await readXlsx(u8); b.kind = 'ooxml'; } catch (e) { b = null; } }
+  if (!b) {
+    if (typeof XLSX === 'undefined') throw new Error('此格式需要 Excel 解析元件，請確認可連線至 cdn.jsdelivr.net，或先在 Excel 另存為 .xlsx');
+    const wb = XLSX.read(u8, { type: 'array' });
+    b = { kind: 'sheetjs', wb, sheets: wb.SheetNames.map(n => ({ name: n, r0: wb.Sheets[n]['!ref'] ? XLSX.utils.decode_range(wb.Sheets[n]['!ref']).s.r : 0,
+      aoa: XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1, defval: '', raw: false, blankrows: true }) })) };
+  }
+  return b;
+}
 async function loadFile(file) {
   if (running) { alert('處理中，請先停止再更換檔案。'); return; }
   try {
-    const u8 = new Uint8Array(await file.arrayBuffer());
-    let b = null;
-    if (isZip(u8)) { try { b = await readXlsx(u8); b.kind = 'ooxml'; } catch (e) { b = null; } }
-    if (!b) {
-      if (typeof XLSX === 'undefined') throw new Error('此格式需要 Excel 解析元件，請確認可連線至 cdn.jsdelivr.net，或先在 Excel 另存為 .xlsx');
-      const wb = XLSX.read(u8, { type: 'array' });
-      b = { kind: 'sheetjs', wb, sheets: wb.SheetNames.map(n => ({ name: n, r0: wb.Sheets[n]['!ref'] ? XLSX.utils.decode_range(wb.Sheets[n]['!ref']).s.r : 0,
-        aoa: XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1, defval: '', raw: false, blankrows: true }) })) };
-    }
-    book = b; fileName = file.name;
+    book = await readBook(file); fileName = file.name;
     const sel = $('sheetSel'); sel.innerHTML = '';
     book.sheets.forEach((s, i) => sel.add(new Option(s.name, i)));
     $('sheetWrap').classList.toggle('hidden', book.sheets.length < 2);
@@ -1007,7 +1013,7 @@ function selectSheet(i) {
   const hdr = aoa[headerRow], width = Math.max(1, ...aoa.map(r => r ? r.length : 0));
   const sel = $('colSelect'); sel.innerHTML = '';
   for (let c = 0; c < width; c++) sel.add(new Option(`${colName(c)} 欄：${String(hdr[c] ?? '').trim() || '(無標題)'}`, c));
-  let ac = hdr.findIndex(h => /地址|住址|address/i.test(String(h)) && !/英文|english/i.test(String(h)));
+  let ac = hdr.findIndex(h => /地址|住址|address/i.test(String(h)) && !/英文|english|標準化|補全/i.test(String(h)));
   if (ac < 0) {
     let bc = 0, bn = 0;
     for (let c = 0; c < width; c++) { const n = aoa.slice(headerRow + 1, headerRow + 200).filter(r => r && /[縣市].*(路|街|大道|村|里).*\d/.test(norm(r[c]))).length; if (n > bn) { bn = n; bc = c; } }
@@ -1032,7 +1038,6 @@ function buildRecords() {
   const keepN = records.filter(r => /^\d{6}$/.test(r.existing)).length;
   setStatus(records.length ? `共 ${records.length} 筆地址${keepN ? `（${keepN} 筆原本已有 6 碼，保留不查）` : ''}，按「一鍵補全 6 碼郵遞區號」即可。` : '地址欄沒有資料，請改選地址欄位。');
 }
-
 /* ---------- 顯示 ---------- */
 function setStatus(t) { $('statusText').textContent = t; }
 function setProgress(p) { const v = Math.round(p * 100); $('progressBar').style.width = v + '%'; $('pctText').textContent = v + '%'; }
@@ -1052,27 +1057,27 @@ function statusHTML(r) {
   const [label, cls] = STATUS[r.status];
   let h = `<span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${cls}">${label}</span>`;
   if (r.candidates?.length && r.status === 'conflict')
-    h += `<div class="mt-1 flex flex-wrap gap-1">${r.candidates.map(c => `<button data-act="pick" data-zip="${c.zip}" class="px-2 py-0.5 rounded border border-amber-400 text-amber-800 text-[11px] hover:bg-amber-50">採用 ${c.zip}（${esc(c.src)}）</button>`).join('')}</div>`;
-  h += `<div class="mt-1 grid grid-cols-2 gap-1">
-    <button data-act="nsda" class="px-1 py-1 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-semibold">nsda 標準化</button>
-    <button data-act="post" class="px-1 py-1 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-semibold">郵政 208 查詢</button></div>`;
-  if (r.note) h += `<div class="text-[11px] text-slate-500 mt-1 leading-snug">${esc(r.note)}</div>`;
+    h += `<div class="mt-1 flex flex-wrap gap-1">${r.candidates.map(c => `<button data-act="pick" data-zip="${c.zip}" class="px-2 py-2 md:py-1 rounded border border-amber-400 text-amber-800 text-xs md:text-[11px] hover:bg-amber-50 text-left">採用 ${c.zip}（${esc(c.src)}）</button>`).join('')}</div>`;
+  h += `<div class="mt-1.5 grid grid-cols-2 gap-1">
+    <button data-act="nsda" class="px-1 py-2.5 md:py-1 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-semibold">nsda 標準化</button>
+    <button data-act="post" class="px-1 py-2.5 md:py-1 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-semibold">郵政 208 查詢</button></div>`;
+  if (r.note) h += `<div class="text-[11px] text-slate-500 mt-1 leading-snug break-any">${esc(r.note)}</div>`;
   return h;
 }
 function rowHTML(r, i) {
   const bg = r.status === 'fail' ? 'bg-red-50/50' : ['review', 'conflict'].includes(r.status) ? 'bg-amber-50/40' : '';
   return `<tr data-i="${i}" class="border-t border-slate-100 align-top ${bg}">
-    <td class="px-2 py-2 text-slate-400 text-xs">${(sheet?.r0 || 0) + r.row + 1}</td>
-    <td class="px-2 py-2">${esc(r.original)}</td>
-    <td class="px-2 py-2"><div class="flex items-start gap-1"><span data-act="addr" class="flex-1">${completedHTML(r) || '<span class="text-slate-300">—</span>'}</span>
-      ${r.status !== 'pending' ? '<button data-act="edit" title="修改地址後重新查詢" class="text-slate-400 hover:text-slate-700 text-xs">✎</button>' : ''}</div></td>
-    <td class="px-2 py-2"><input data-act="zip" class="w-24 border border-slate-300 rounded-md px-2 py-1 font-mono tracking-wider focus:ring-2 focus:ring-emerald-400 outline-none" value="${esc(r.zip)}" maxlength="6" inputmode="numeric" placeholder="——————"></td>
-    <td class="px-2 py-2 w-64">${statusHTML(r)}</td></tr>`;
+    <td class="rt-no px-2 py-2 text-slate-400 text-xs" data-label="第">${(sheet?.r0 || 0) + r.row + 1}<span class="md:hidden"> 列</span></td>
+    <td class="px-2 py-2 break-any" data-label="原始地址">${esc(r.original)}</td>
+    <td class="px-2 py-2 break-any" data-label="補全後完整地址"><div class="flex items-start gap-1"><span data-act="addr" class="flex-1 min-w-0">${completedHTML(r) || '<span class="text-slate-300">—</span>'}</span>
+      ${r.status !== 'pending' ? '<button data-act="edit" title="修改地址後重新查詢" class="shrink-0 px-2.5 py-1.5 md:px-1.5 md:py-0 -my-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 text-base md:text-sm">✎</button>' : ''}</div></td>
+    <td class="px-2 py-2" data-label="3+3碼郵遞區號"><input data-act="zip" class="w-full md:w-24 border border-slate-300 rounded-md px-2 py-1.5 md:py-1 font-mono tracking-wider text-base md:text-sm focus:ring-2 focus:ring-emerald-400 outline-none" value="${esc(r.zip)}" maxlength="6" inputmode="numeric" placeholder="——————"></td>
+    <td class="px-2 py-2 w-64" data-label="狀態與雙平臺單筆查詢">${statusHTML(r)}</td></tr>`;
 }
 function visible(r) { const f = $('filterSel').value; return f === 'all' || (f === 'todo' && TODO.includes(r.status)) || (f === 'ai' && r.added && (r.added.district || r.added.city)); }
 function renderTable() {
   const html = records.map((r, i) => visible(r) ? rowHTML(r, i) : '').join('');
-  $('tbody').innerHTML = html || `<tr><td colspan="5" class="px-3 py-8 text-center text-slate-400">${records.length ? '沒有符合篩選條件的地址' : '尚無資料'}</td></tr>`;
+  $('tbody').innerHTML = html || EMPTY_ROW(records.length ? '沒有符合篩選條件的地址' : '尚無資料');
 }
 function refreshRow(i) {
   const tr = $('tbody').querySelector(`tr[data-i="${i}"]`);
@@ -1081,7 +1086,6 @@ function refreshRow(i) {
   const t = document.createElement('tbody'); t.innerHTML = rowHTML(records[i], i); tr.replaceWith(t.firstElementChild);
 }
 $('filterSel').addEventListener('change', renderTable);
-
 /* ---------- 編輯 ---------- */
 function applyZip(r, val, fromUser = true) {
   const v = norm(val).replace(/\D/g, '');
@@ -1097,32 +1101,31 @@ $('tbody').addEventListener('change', e => {
   const i = +e.target.closest('tr').dataset.i; applyZip(records[i], e.target.value); refreshRow(i); updateCounts();
 });
 $('tbody').addEventListener('click', e => {
-  const act = e.target.dataset.act, tr = e.target.closest('tr'); if (!act || !tr) return;
+  const btn = e.target.closest('[data-act]'); if (!btn) return;
+  const act = btn.dataset.act, tr = btn.closest('tr'); if (!tr || act === 'zip' || act === 'addr') return;
   const i = +tr.dataset.i, r = records[i], done = () => { refreshRow(i); updateCounts(); };
-  if (act === 'pick') { applyZip(r, e.target.dataset.zip); done(); }
+  if (act === 'pick') { applyZip(r, btn.dataset.zip); done(); }
   if (act === 'nsda' || act === 'post') openHelper(act, r, done);
   if (act === 'edit') editAddress(i);
 });
 function editAddress(i) {
   const r = records[i], tr = $('tbody').querySelector(`tr[data-i="${i}"]`); if (!tr || running) return;
   const cell = tr.cells[2];
-  cell.innerHTML = `<div class="flex gap-1"><input class="flex-1 border border-blue-300 rounded px-2 py-1 text-sm" value="${esc(r.completed)}">
-    <button class="px-2 rounded bg-emerald-600 text-white text-xs">重查</button><button class="px-2 rounded border text-xs">取消</button></div>`;
+  cell.innerHTML = `<div class="flex flex-col sm:flex-row gap-1"><input class="flex-1 min-w-0 border border-blue-300 rounded px-2 py-1.5 text-base md:text-sm" value="${esc(r.completed)}">
+    <div class="flex gap-1"><button class="flex-1 px-3 py-1.5 rounded bg-emerald-600 text-white text-xs">重查</button><button class="flex-1 px-3 py-1.5 rounded border border-slate-300 text-xs">取消</button></div></div>`;
   const inp = cell.querySelector('input'), [bOk, bNo] = cell.querySelectorAll('button');
   inp.focus();
   bNo.onclick = () => refreshRow(i);
   const go = async () => {
     const txt = inp.value.trim(); if (!txt) return;
     bOk.disabled = true; bOk.textContent = '查詢中';
-    const ctx = newCtx(); ctx.wait = () => Promise.resolve();
-    ctx.wait = () => sleep(300); ctx.stop = () => false;
-    const res = await processAddress(txt, ctx, t => { bOk.textContent = t.replace('自動辨識行政區 ', ''); });
+    const ctx = newCtx(); ctx.wait = () => sleep(300); ctx.stop = () => false;
+    const res = await processAddress(txt, ctx);
     Object.assign(r, res); r.note = '使用者修改地址後重查｜' + r.note; r.apiNote = r.note;
     refreshRow(i); updateCounts();
   };
   bOk.onclick = go; inp.onkeydown = e => { if (e.key === 'Enter') go(); if (e.key === 'Escape') refreshRow(i); };
 }
-
 /* ---------- 雙平臺單筆查詢小視窗 ---------- */
 function openHelper(kind, r, cb) {
   modalRec = r; modalCb = cb;
@@ -1145,23 +1148,23 @@ function openHelper(kind, r, cb) {
   $('mOrig').textContent = r.original;
   $('mNote').textContent = r.note || '';
   $('mFields').innerHTML = fields.map(([k, v]) => `<div class="flex items-center gap-2">
-    <span class="w-40 shrink-0 text-sm text-slate-500">${k}</span>
-    <span class="flex-1 px-3 py-1.5 rounded-md bg-slate-50 border border-slate-200 ${v ? 'text-slate-800 font-medium' : 'text-slate-400'}">${v ? esc(v) : '（未辨識）'}</span>
-    ${v ? `<button data-copy="${esc(v)}" class="w-14 py-1.5 text-xs rounded-md border border-blue-300 text-blue-700 hover:bg-blue-50">複製</button>` : '<span class="w-14"></span>'}</div>`).join('');
+    <span class="w-20 sm:w-40 shrink-0 text-xs sm:text-sm text-slate-500">${k}</span>
+    <span class="flex-1 min-w-0 px-2.5 py-1.5 rounded-md bg-slate-50 border border-slate-200 text-sm break-any ${v ? 'text-slate-800 font-medium' : 'text-slate-400'}">${v ? esc(v) : '（未辨識）'}</span>
+    ${v ? `<button data-copy="${esc(v)}" class="shrink-0 w-14 py-1.5 text-xs rounded-md border border-blue-300 text-blue-700 hover:bg-blue-50">複製</button>` : '<span class="w-14 shrink-0"></span>'}</div>`).join('');
   $('mZip').value = r.zip || ''; $('mErr').textContent = '';
   $('mNext').classList.toggle('hidden', r === singleRec);
-  $('modal').classList.remove('hidden'); setTimeout(() => $('mZip').focus(), 50);
+  $('modal').classList.remove('hidden'); document.body.style.overflow = 'hidden';
+  if (window.matchMedia('(min-width: 640px)').matches) setTimeout(() => $('mZip').focus(), 50);
 }
-function closeModal() { $('modal').classList.add('hidden'); modalRec = null; modalCb = null; }
+function closeModal() { $('modal').classList.add('hidden'); document.body.style.overflow = ''; modalRec = null; modalCb = null; }
 $('modalClose').addEventListener('click', closeModal);
 $('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && modalRec) closeModal(); });
 $('mOpen').addEventListener('click', e => window.open(e.currentTarget.dataset.url, '_blank', 'noopener'));
 $('mFields').addEventListener('click', async e => {
-  const v = e.target.dataset.copy; if (v == null) return;
-  try { await navigator.clipboard.writeText(v); }
-  catch (err) { const t = document.createElement('textarea'); t.value = v; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
-  e.target.textContent = '已複製'; setTimeout(() => { e.target.textContent = '複製'; }, 1000);
+  const b = e.target.closest('[data-copy]'); if (!b) return;
+  await copyText(b.dataset.copy);
+  b.textContent = '已複製'; setTimeout(() => { b.textContent = '複製'; }, 1000);
 });
 function saveModal() {
   const v = norm($('mZip').value).replace(/\D/g, '');
@@ -1179,8 +1182,7 @@ $('mNext').addEventListener('click', () => {
   const kind = $('mTitle').textContent.startsWith('nsda') ? 'nsda' : 'post';
   openHelper(kind, records[n], () => { refreshRow(n); updateCounts(); });
 });
-
-/* ---------- 批次 ---------- */
+/* ---------- 批次執行 ---------- */
 $('btnStop').addEventListener('click', () => { stopFlag = true; setStatus('停止中，完成目前這筆後停止…'); });
 $('btnStart').addEventListener('click', async () => {
   if (dbLoading) { setStatus('等待官方投遞範圍資料載入完成…'); await dbLoading; }
@@ -1206,9 +1208,7 @@ $('btnStart').addEventListener('click', async () => {
       let res = cache.get(key);
       if (res) res = { ...res, note: res.note + '（重複地址，沿用）', apiNote: res.apiNote + '（重複地址，沿用）' };
       else {
-        const before = new Set(ctx.disabled);
         res = await processAddress(r.original, ctx, t => setStatus(head + '｜' + t));
-        for (const s of ctx.disabled) if (!before.has(s)) log(`${SOURCES[s].label} 已達每日查詢上限，後續改用另一個來源。`, 'text-amber-300');
         if (!res.transient && !stopFlag) cache.set(key, res);
       }
       Object.assign(r, res);
@@ -1216,7 +1216,7 @@ $('btnStart').addEventListener('click', async () => {
       log(`第 ${(sheet.r0 || 0) + r.row + 1} 列 ${r.original} → ${r.zip || '查無'}｜${r.note}`,
         { ok: 'text-emerald-300', review: 'text-amber-300', conflict: 'text-amber-300', fail: 'text-red-300' }[r.status]);
       refreshRow(i); updateCounts(); setProgress((k + 1) / Math.max(1, todo.length));
-      if (ctx.sources.every(s => ctx.disabled.has(s))) { limitHit = true; log('所有公開查詢來源皆已達每日上限，請明天再按一次繼續，或使用官方平臺單筆查詢。', 'text-red-300'); break; }
+      if (!ZIPDB.ready && ctx.sources.every(s => ctx.disabled.has(s))) { limitHit = true; log('所有免費查詢來源皆無法使用，請稍後再試，或使用官方平臺單筆查詢。', 'text-red-300'); break; }
     }
   } catch (e) { log('發生未預期錯誤：' + e.message, 'text-red-300'); }
   finally {
@@ -1224,13 +1224,12 @@ $('btnStart').addEventListener('click', async () => {
     ['btnStart', 'colSelect', 'sheetSel', 'btnOne'].forEach(id => $(id).disabled = false);
     $('btnStop').disabled = true;
     const c = s => records.filter(r => s.includes(r.status)).length, left = c(['pending']);
-    setStatus((limitHit ? `公開來源已達每日上限，暫停（尚有 ${left} 筆未處理）。` : stopFlag ? `已停止（尚有 ${left} 筆未處理）。` : '完成：')
+    setStatus((limitHit ? `免費來源無法使用，暫停（尚有 ${left} 筆未處理）。` : stopFlag ? `已停止（尚有 ${left} 筆未處理）。` : '完成：')
       + `成功 ${c(['ok'])} 筆、需覆核 ${c(['review', 'conflict'])} 筆、查無 ${c(['fail'])} 筆。` + (c(TODO) ? '待補查者可用 nsda／郵政 208 按鈕查到後填入，按「下載 Excel」即可輸出。' : '請按「下載 Excel」輸出結果檔。'));
     setProgress(1); updateCounts();
   }
 });
-
-/* ---------- 一鍵匯出 ---------- */
+/* ---------- 下載 Excel ---------- */
 async function exportExcel() {
   try {
     document.querySelectorAll('#tbody input[data-act="zip"]').forEach(inp => {
@@ -1269,7 +1268,7 @@ $('btnDownload').addEventListener('click', exportExcel);
 function zipColOf() {
   if (!sheet) return -1;
   const hdr = sheet.aoa[headerRow] || [];
-  return hdr.findIndex(h => /郵遞|郵編|zip|postal/i.test(String(h)));
+  return hdr.findIndex(h => /郵遞|郵編|zip|postal/i.test(String(h)) && !/檢核|建議/.test(String(h)));
 }
 function download(blob, name) {
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
@@ -1286,7 +1285,6 @@ function download(blob, name) {
     pending: ['等待檢核', 'bg-slate-100 text-slate-500', '']
   };
   const ckSet = (t, p) => { $('ckStatus').textContent = t; if (p != null) { const v = Math.round(p * 100); $('ckBar').style.width = v + '%'; $('ckPct').textContent = v + '%'; } };
-
   /* ---------- 上傳 ---------- */
   const drop = $('ckDrop'), inp = $('ckFile');
   drop.addEventListener('click', () => inp.click());
@@ -1294,19 +1292,10 @@ function download(blob, name) {
   ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('dragover'); }));
   drop.addEventListener('drop', e => { if (e.dataTransfer.files[0]) load(e.dataTransfer.files[0]); });
   inp.addEventListener('change', e => { if (e.target.files[0]) load(e.target.files[0]); e.target.value = ''; });
-
   async function load(file) {
     if (ck.running) { alert('檢核中，請先停止再更換檔案。'); return; }
     try {
-      const u8 = new Uint8Array(await file.arrayBuffer());
-      let b = null;
-      if (isZip(u8)) { try { b = await readXlsx(u8); b.kind = 'ooxml'; } catch (e) { b = null; } }
-      if (!b) {
-        if (typeof XLSX === 'undefined') throw new Error('此格式需要 Excel 解析元件，請確認可連線至 cdn.jsdelivr.net，或先在 Excel 另存為 .xlsx');
-        const wb = XLSX.read(u8, { type: 'array' });
-        b = { kind: 'sheetjs', wb, sheets: wb.SheetNames.map(n => ({ name: n, r0: wb.Sheets[n]['!ref'] ? XLSX.utils.decode_range(wb.Sheets[n]['!ref']).s.r : 0,
-          aoa: XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1, defval: '', raw: false, blankrows: true }) })) };
-      }
+      const b = await readBook(file);
       ck.book = b; ck.fileName = file.name;
       const sel = $('ckSheet'); sel.innerHTML = '';
       b.sheets.forEach((s, i) => sel.add(new Option(s.name, i)));
@@ -1316,7 +1305,6 @@ function download(blob, name) {
     } catch (e) { ck.book = null; ck.rows = []; render(); counts(); $('ckStart').disabled = true; ckSet('讀取失敗：' + e.message, 0); }
   }
   $('ckSheet').addEventListener('change', e => { if (!ck.running) useSheet(+e.target.value); });
-
   function useSheet(i) {
     const sh = ck.sheet = ck.book.sheets[i], aoa = sh.aoa;
     let hr = -1, best = -Infinity;
@@ -1342,7 +1330,6 @@ function download(blob, name) {
   }
   $('ckAddrCol').addEventListener('change', () => { if (!ck.running) build(); });
   $('ckZipCol').addEventListener('change', () => { if (!ck.running) build(); });
-
   function build() {
     const ac = +$('ckAddrCol').value, zc = +$('ckZipCol').value, aoa = ck.sheet.aoa;
     ck.rows = [];
@@ -1350,13 +1337,12 @@ function download(blob, name) {
       const row = aoa[r] || [], addr = String(row[ac] ?? '').trim();
       if (!addr) continue;
       const raw = String(row[zc] ?? '').trim();
-      ck.rows.push({ row: r, addr, raw, digits: norm(raw).replace(/\D/g, ''), official: '', cands: [], v: 'pending', msg: '', suggest: '', basis: '' });
+      ck.rows.push({ row: r, addr, raw, digits: norm(raw).replace(/\D/g, ''), official: '', v: 'pending', msg: '', suggest: '', basis: '' });
     }
     $('ckStart').disabled = !ck.rows.length; $('ckDownload').disabled = true;
     render(); counts();
     ckSet(ck.rows.length ? `共 ${ck.rows.length} 筆地址，按「開始檢核」即可。` : '地址欄沒有資料，請改選地址欄位。', 0);
   }
-
   /* ---------- 判定 ---------- */
   function judge(x, res) {
     const off = res.zip, cands = [...new Set((res.candidates || []).map(c => c.zip))], d = x.digits;
@@ -1385,11 +1371,10 @@ function download(blob, name) {
     if (ref.slice(0, 3) === d.slice(0, 3)) return Object.assign(x, { v: 'warn', msg: `${kind}（不完整），前 3 碼正確，建議改為 3+3 碼`, suggest: off || cands.join(' / ') });
     return Object.assign(x, { v: 'bad', msg: `${kind}，且前 3 碼不符`, suggest: off || cands.join(' / ') });
   }
-
   /* ---------- 執行檢核 ---------- */
   $('ckStop').addEventListener('click', () => { ck.stop = true; ckSet('停止中，完成目前這筆後停止…'); });
   $('ckStart').addEventListener('click', async () => {
-    if (typeof dbLoading !== 'undefined' && dbLoading) { ckSet('等待官方投遞範圍資料載入完成…'); await dbLoading; }
+    if (dbLoading) { ckSet('等待官方投遞範圍資料載入完成…'); await dbLoading; }
     const todo = ck.rows.filter(x => x.v === 'pending' || (x.v === 'na' && x.retry));
     if (!todo.length) { ckSet('全部已檢核完成；如需重新檢核請重新上傳檔案。'); return; }
     ck.running = true; ck.stop = false;
@@ -1418,7 +1403,6 @@ function download(blob, name) {
       counts();
     }
   });
-
   /* ---------- 顯示 ---------- */
   function counts() {
     const n = v => ck.rows.filter(x => x.v === v).length;
@@ -1428,27 +1412,26 @@ function download(blob, name) {
   const vis = x => $('ckFilter').value === 'all' || ['bad', 'warn', 'na'].includes(x.v);
   function rowHTML(x, i) {
     const [label, cls, bg] = VERD[x.v];
-    const sug = x.suggest ? `<div class="mt-1 text-xs">建議郵遞區號：<b class="font-mono text-emerald-700">${esc(x.suggest)}</b></div>` : '';
+    const sug = x.suggest ? `<div class="mt-1 text-xs">建議郵遞區號：<b class="font-mono text-emerald-700 text-sm">${esc(x.suggest)}</b></div>` : '';
     return `<tr data-k="${i}" class="border-t border-slate-100 align-top ${bg}">
-      <td class="px-2 py-2 text-slate-400 text-xs">${(ck.sheet?.r0 || 0) + x.row + 1}</td>
-      <td class="px-2 py-2">${esc(x.addr)}</td>
-      <td class="px-2 py-2 font-mono">${esc(x.raw) || '<span class="text-slate-300">（空白）</span>'}</td>
-      <td class="px-2 py-2 font-mono">${esc(x.official) || '<span class="text-slate-300">—</span>'}</td>
-      <td class="px-2 py-2"><span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${cls}">${label}</span> <span class="text-xs">${esc(x.msg)}</span>${sug}
-        ${x.basis ? `<div class="text-[11px] text-slate-500 mt-0.5 leading-snug">${esc(x.basis)}</div>` : ''}</td></tr>`;
+      <td class="rt-no px-2 py-2 text-slate-400 text-xs" data-label="第">${(ck.sheet?.r0 || 0) + x.row + 1}<span class="md:hidden"> 列</span></td>
+      <td class="px-2 py-2 break-any" data-label="地址">${esc(x.addr)}</td>
+      <td class="px-2 py-2 font-mono" data-label="原郵遞區號">${esc(x.raw) || '<span class="text-slate-300">（空白）</span>'}</td>
+      <td class="px-2 py-2 font-mono break-any" data-label="官方比對結果">${esc(x.official) || '<span class="text-slate-300">—</span>'}</td>
+      <td class="px-2 py-2" data-label="檢核結果與依據"><span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${cls}">${label}</span> <span class="text-xs">${esc(x.msg)}</span>${sug}
+        ${x.basis ? `<div class="text-[11px] text-slate-500 mt-0.5 leading-snug break-any">${esc(x.basis)}</div>` : ''}</td></tr>`;
   }
   function render() {
     const html = ck.rows.map((x, i) => vis(x) ? rowHTML(x, i) : '').join('');
-    $('ckBody').innerHTML = html || `<tr><td colspan="5" class="px-3 py-8 text-center text-slate-400">${ck.rows.length ? '沒有需要處理的項目' : '尚無資料'}</td></tr>`;
+    $('ckBody').innerHTML = html || EMPTY_ROW(ck.rows.length ? '沒有需要處理的項目' : '尚無資料');
   }
   function refresh(x) {
     const i = ck.rows.indexOf(x), tr = $('ckBody').querySelector(`tr[data-k="${i}"]`);
-    if (!vis(x)) { if (tr) tr.remove(); return; }
+    if (!vis(x)) { if (tr) tr.remove(); if (!$('ckBody').querySelector('tr[data-k]')) render(); return; }
     if (!tr) { render(); return; }
     const t = document.createElement('tbody'); t.innerHTML = rowHTML(x, i); tr.replaceWith(t.firstElementChild);
   }
   $('ckFilter').addEventListener('change', render);
-
   /* ---------- 下載檢核報告 ---------- */
   $('ckDownload').addEventListener('click', async () => {
     try {
