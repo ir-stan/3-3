@@ -10,7 +10,7 @@
   body { font-family: "Microsoft JhengHei", "Noto Sans TC", system-ui, sans-serif; }
   #dropZone.dragover { background: #ecfdf5; border-color: #059669; }
   #log { font-family: Consolas, "Microsoft JhengHei", monospace; }
-  .hidden { display: none; }
+  .hidden { display: none !important; }
 </style>
 </head>
 <body class="bg-slate-100 min-h-screen py-8 px-4">
@@ -24,7 +24,7 @@
   <section class="bg-white rounded-2xl shadow p-6 space-y-5">
     <div id="dropZone" class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center cursor-pointer transition-colors hover:bg-slate-50">
       <p class="text-slate-600 text-lg">將 Excel 檔拖曳到這裡，或 <span class="text-emerald-600 underline">點擊選擇檔案</span></p>
-      <p class="text-xs text-slate-400 mt-1">.xlsx / .xlsm 直接寫回原檔並保留原有格式；.xls / .csv / .ods 也可讀取</p>
+      <p class="text-xs text-slate-400 mt-1">.xlsx / .xlsm 直接寫回原檔並保留原有格式；.xls / .xlsb / .csv / .ods 也可讀取（另存為 .xlsx）</p>
       <p id="fileName" class="mt-2 text-sm text-emerald-700 font-semibold"></p>
       <input id="fileInput" type="file" accept=".xlsx,.xlsm,.xltx,.xltm,.xls,.xlsb,.csv,.ods" class="hidden">
     </div>
@@ -47,7 +47,7 @@
     <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-600">
       <label class="inline-flex items-center gap-1"><input id="keepExisting" type="checkbox" checked> 原本已有 6 碼的保留不查</label>
       <label class="inline-flex items-center gap-1">每次查詢間隔 <input id="delay" type="number" min="1000" step="500" value="2000" class="w-20 border border-slate-300 rounded px-2 py-0.5"> 毫秒</label>
-      <span class="text-xs text-slate-400">（來源網站要求查詢間留緩衝；zip5 每日上限 2000 次、ziptw 每日 100 次，達上限會自動改用另一來源）</span>
+      <span class="text-xs text-slate-400">（來源網站要求查詢間留緩衝；zip5 每日上限約 2000 次、ziptw 每日 100 次，達上限會自動改用另一來源）</span>
     </div>
 
     <div class="grid grid-cols-4 gap-3">
@@ -171,7 +171,7 @@ async function writeZip(files) {   // files: [{name, data}] 或 [{name, entry}]�
   const cds = cd.reduce((a, b) => a + b.length, 0);
   const e = new Uint8Array(22), ev = new DataView(e.buffer);
   ev.setUint32(0, 0x06054b50, true); ev.setUint16(8, files.length, true); ev.setUint16(10, files.length, true); ev.setUint32(12, cds, true); ev.setUint32(16, off, true);
-  return new Blob([...parts, ...cd, e], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  return new Blob([...parts, ...cd, e], { type: 'application/octet-stream' });
 }
 
 const XML_ENT = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
@@ -203,6 +203,7 @@ async function readXlsx(u8) {
     if (!xml || !/<(?:\w+:)?worksheet\b/.test(xml)) continue;
     sheets.push({ name: a.name, path, aoa: sheetXmlToAOA(xml, sst) });
   }
+  if (!sheets.length) throw new Error('檔案中沒有可讀取的工作表');
   return { entries, sheets };
 }
 function sheetXmlToAOA(xml, sst) {
@@ -227,7 +228,7 @@ function sheetXmlToAOA(xml, sst) {
   return aoa;
 }
 
-/* 將 edits（Map 列 → Map 欄 → 文字）寫入工作表 XML，保留原儲存格樣式 */
+/* 將 edits（Map 列 → Map 欄 → 文字）寫入工作表 XML，保留原儲存格樣式；新儲存格沿用欄／列樣式 */
 function patchSheetXml(xml, edits, headerStyleRow = -1) {
   const sdm = /<sheetData\b([^>]*)\/>|<sheetData\b([^>]*)>([\s\S]*?)<\/sheetData>/.exec(xml);
   if (!sdm) throw new Error('工作表缺少 sheetData');
@@ -238,13 +239,13 @@ function patchSheetXml(xml, edits, headerStyleRow = -1) {
     rows.push({ r, attr: rm[1], inner: rm[2] || '', raw: rm[0] });
   }
   const byR = new Map(rows.map(x => [x.r, x]));
-  // 欄預設樣式（<cols>），新建儲存格沿用，避免改變外觀
   const colStyle = [];
   for (const m of xml.matchAll(/<col\b([^>]*?)\/?>/g)) { const a = attrs(m[1]); if (a.style != null) for (let c = +a.min - 1; c < +a.max && c < 16384; c++) colStyle[c] = a.style; }
   let maxR = 0, maxC = 0;
   for (const [r, cols] of edits) {
     let row = byR.get(r);
     if (!row) { row = { r, attr: ` r="${r + 1}"`, inner: '', raw: null }; rows.push(row); byR.set(r, row); }
+    const ra = attrs(row.attr);
     const cells = []; let cAuto = 0;
     for (const cm of row.inner.matchAll(/<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g)) {
       const a = attrs(cm[1]); const c = a.r ? colIdx(a.r) : cAuto; cAuto = c + 1;
@@ -252,7 +253,6 @@ function patchSheetXml(xml, edits, headerStyleRow = -1) {
     }
     for (const [c, v] of cols) {
       const ref = colName(c) + (r + 1); const i = cells.findIndex(x => x.c === c);
-      const ra = attrs(row.attr);
       let s = i >= 0 ? cells[i].s : (ra.customFormat === '1' && ra.s != null ? ra.s : colStyle[c]);
       if (s == null && r === headerStyleRow) { const left = cells.filter(x => x.c < c && x.s != null).pop(); if (left) s = left.s; }
       const x = `<c r="${ref}"${s != null ? ` s="${s}"` : ''} t="inlineStr"><is><t xml:space="preserve">${xmlEsc(v)}</t></is></c>`;
@@ -274,11 +274,19 @@ function patchSheetXml(xml, edits, headerStyleRow = -1) {
   });
   return out;
 }
+/* 寫回原檔：只改目標工作表；移除 calcChain（Excel 開檔時自動重建，避免覆寫公式儲存格後跳出修復提示）；範本轉一般活頁簿 */
 async function writeXlsxPatched(book, path, edits, headerRow = -1) {
   const files = [];
   for (const e of book.entries) {
-    if (e.name === path) files.push({ name: e.name, data: utf8e.encode(patchSheetXml(utf8d.decode(await zipData(e)), edits, headerRow)) });
-    else files.push({ name: e.name, entry: e });
+    if (e.name === 'xl/calcChain.xml') continue;
+    if (e.name === path) { files.push({ name: e.name, data: utf8e.encode(patchSheetXml(utf8d.decode(await zipData(e)), edits, headerRow)) }); continue; }
+    if (e.name === '[Content_Types].xml' || e.name === 'xl/_rels/workbook.xml.rels') {
+      let t = utf8d.decode(await zipData(e));
+      t = t.replace(/<Override\b[^>]*PartName="\/xl\/calcChain\.xml"[^>]*\/>/g, '').replace(/<Relationship\b[^>]*Target="[^"]*calcChain\.xml"[^>]*\/>/g, '');
+      t = t.replace('spreadsheetml.template.main+xml', 'spreadsheetml.sheet.main+xml').replace('ms-excel.template.macroEnabled.main+xml', 'ms-excel.sheet.macroEnabled.main+xml');
+      files.push({ name: e.name, data: utf8e.encode(t) }); continue;
+    }
+    files.push({ name: e.name, entry: e });
   }
   return writeZip(files);
 }
@@ -377,7 +385,7 @@ function splitAddr(raw) {
   return o;
 }
 const base = o => o.city + o.district + o.road + o.section + o.lane + o.alley + o.number;
-/* 送查的地址候選：先含樓層，再不含樓層 */
+/* 送查的地址候選：含樓層 → 不含樓層 → 清理後的原地址 */
 function queryVariants(raw) {
   const o = splitAddr(raw);
   const cleaned = norm(raw).replace(/^\d{3,6}/, '').replace(/[（(][^）)]*[）)]/g, '').replace(/(\d)[-－—‐~～](\d)/g, '$1之$2').replace(/(\d+)[Ff](?![a-z])/g, '$1樓');
@@ -386,9 +394,10 @@ function queryVariants(raw) {
     if (o.floor) list.push({ q: base(o) + o.floor, floorless: false });
     list.push({ q: base(o), floorless: !!o.floor });
   }
-  list.push({ q: cleaned, floorless: false });          // 最後以清理後的原地址再試一次
+  list.push({ q: cleaned, floorless: false });
   return { parts: o, variants: list.filter((v, i, a) => v.q && a.findIndex(x => x.q === v.q) === i) };
 }
+
 /* ===== 公開 API ===== */
 async function fetchJSON(url, timeoutMs = 15000) {
   const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), timeoutMs);
@@ -396,10 +405,11 @@ async function fetchJSON(url, timeoutMs = 15000) {
     const r = await fetch(url, { signal: ctrl.signal });
     if (r.status === 429) { const e = new Error('已達每日查詢上限'); e.limit = true; throw e; }
     if (!r.ok) throw new Error('HTTP ' + r.status);
-    return await r.json();
+    const text = await r.text();
+    try { return JSON.parse(text); } catch (e) { throw new Error('回應格式錯誤'); }
   } catch (e) {
-    if (e.limit) throw e;
-    throw new Error(e.name === 'AbortError' ? '逾時' : /fetch/i.test(e.message) ? '連線失敗' : e.message);
+    if (e.limit || e.message === '回應格式錯誤' || /^HTTP /.test(e.message)) throw e;
+    throw new Error(e.name === 'AbortError' ? '逾時' : '連線失敗');
   } finally { clearTimeout(t); }
 }
 const SOURCES = {
@@ -410,24 +420,22 @@ const SOURCES = {
 async function lookupOne(raw, ctx) {
   const { parts, variants } = queryVariants(raw);
   const errors = [];
-  for (let vi = 0; vi < variants.length; vi++) {
-    const v = variants[vi]; const got = {};
+  for (const v of variants) {
     const active = ctx.sources.filter(k => !ctx.disabled.has(k));
     if (!active.length) break;
-    // 兩個來源同時查詢（各自仍維持間隔），查完再等待一個間隔
-    await Promise.all(active.map(async key => {
+    const got = {};
+    await Promise.all(active.map(async key => {            // 兩個來源同時查詢
       try { got[key] = await SOURCES[key].q(v.q); }
       catch (e) { errors.push(`${SOURCES[key].label}：${e.message}`); if (e.limit) ctx.disabled.add(key); }
     }));
-    await ctx.wait();
+    await ctx.wait();                                     // 每次查詢後等待間隔
     const vals = Object.entries(got).filter(([, z]) => z);
     const uniq = [...new Set(vals.map(([, z]) => z))];
     if (uniq.length > 1) return { zip: '', status: 'conflict', query: v.q, parts, candidates: vals.map(([k, z]) => ({ src: SOURCES[k].label, zip: z })), note: '兩個來源結果不同：' + vals.map(([k, z]) => `${SOURCES[k].label} ${z}`).join('、') };
     if (uniq.length === 1) {
       const srcs = vals.map(([k]) => SOURCES[k].label).join('、');
-      const both = vals.length > 1;
       return { zip: uniq[0], status: v.floorless ? 'review' : 'ok', query: v.q, parts, candidates: [],
-        note: (both ? '兩個來源一致' : `單一來源：${srcs}`) + (v.floorless ? '｜已去除樓層查詢，部分大樓依樓層分碼，請覆核' : '') };
+        note: (vals.length > 1 ? '兩個來源一致' : `單一來源：${srcs}`) + (v.floorless ? '｜已去除樓層查詢，部分大樓依樓層分碼，請覆核' : '') };
     }
   }
   const noSrc = ctx.sources.every(k => ctx.disabled.has(k));
@@ -447,6 +455,7 @@ const STATUS = {
   fail: ['查無結果', 'bg-red-100 text-red-700'],
   manual: ['手動補填', 'bg-sky-100 text-sky-700']
 };
+const TODO = ['fail', 'conflict', 'review'];
 let book = null, sheet = null, fileName = '', headerRow = 0, records = [], running = false, stopFlag = false, modalIdx = null;
 
 /* ---------- 上傳 ---------- */
@@ -461,22 +470,22 @@ async function loadFile(file) {
   if (running) { alert('處理中，請先停止再更換檔案。'); return; }
   try {
     const u8 = new Uint8Array(await file.arrayBuffer());
-    if (isZip(u8) && /\.(xlsx|xlsm|xltx|xltm)$/i.test(file.name)) {
-      book = await readXlsx(u8); book.kind = 'ooxml';
-    } else {
-      if (typeof XLSX === 'undefined') throw new Error('此格式需要 Excel 解析元件，請確認可連線至 cdn.jsdelivr.net，或先另存為 .xlsx');
+    let b = null;
+    if (isZip(u8)) { try { b = await readXlsx(u8); b.kind = 'ooxml'; } catch (e) { b = null; } }
+    if (!b) {
+      if (typeof XLSX === 'undefined') throw new Error('此格式需要 Excel 解析元件，請確認可連線至 cdn.jsdelivr.net，或先在 Excel 另存為 .xlsx');
       const wb = XLSX.read(u8, { type: 'array' });
-      book = { kind: 'sheetjs', wb, sheets: wb.SheetNames.map(n => ({ name: n, aoa: XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1, defval: '', raw: false }) })) };
+      b = { kind: 'sheetjs', wb, sheets: wb.SheetNames.map(n => ({ name: n, r0: wb.Sheets[n]['!ref'] ? XLSX.utils.decode_range(wb.Sheets[n]['!ref']).s.r : 0, aoa: XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1, defval: '', raw: false, blankrows: true }) })) };
     }
-    fileName = file.name;
+    book = b; fileName = file.name;
     const sel = $('sheetSel'); sel.innerHTML = '';
     book.sheets.forEach((s, i) => sel.add(new Option(s.name, i)));
     sel.value = 0;
     $('sheetWrap').classList.toggle('hidden', book.sheets.length < 2);
-    selectSheet(0);
     $('fileName').textContent = file.name;
+    selectSheet(0);
   } catch (e) {
-    book = null; $('btnStart').disabled = true;
+    book = null; records = []; renderTable(); updateCounts(); $('btnStart').disabled = true;
     setStatus('讀取失敗：' + e.message);
   }
 }
@@ -485,19 +494,19 @@ $('sheetSel').addEventListener('change', e => { if (!running) selectSheet(+e.tar
 function selectSheet(i) {
   sheet = book.sheets[i];
   const aoa = sheet.aoa;
-  // 標題列：前 15 列中含「地址／郵遞區號」等字樣者優先，否則取非空欄位最多的一列
-  headerRow = -1; let best = -1;
-  for (let i = 0; i < Math.min(15, aoa.length); i++) {
-    const r = aoa[i] || []; const filled = r.filter(v => String(v).trim() !== '').length;
+  // 標題列：前 15 列中含「地址」字樣者優先，否則取非空欄位最多的一列
+  headerRow = -1; let best = -Infinity;
+  for (let r = 0; r < Math.min(15, aoa.length); r++) {
+    const row = aoa[r] || []; const filled = row.filter(v => String(v).trim() !== '').length;
     if (!filled) continue;
-    const kw = r.some(v => /地址|住址|address/i.test(String(v)) && String(v).length <= 20) ? 1000 : 0;
-    const looksData = r.some(v => /[縣市].*(路|街|大道|村|里).*\d/.test(norm(v))) ? -1000 : 0;
+    const kw = row.some(v => /地址|住址|address/i.test(String(v)) && String(v).length <= 20) ? 1000 : 0;
+    const looksData = row.some(v => /[縣市].*(路|街|大道|村|里).*\d/.test(norm(v))) ? -1000 : 0;
     const score = kw + looksData + filled;
-    if (score > best) { best = score; headerRow = i; }
+    if (score > best) { best = score; headerRow = r; }
   }
-  if (headerRow < 0) { setStatus('此工作表沒有資料。'); $('btnStart').disabled = true; return; }
+  if (headerRow < 0) { setStatus('此工作表沒有資料。'); records = []; renderTable(); updateCounts(); $('btnStart').disabled = true; return; }
   const hdr = aoa[headerRow];
-  const width = Math.max(...aoa.map(r => r ? r.length : 0));
+  const width = Math.max(1, ...aoa.map(r => r ? r.length : 0));
   const addrSel = $('colSelect'), zipSel = $('zipColSelect');
   addrSel.innerHTML = ''; zipSel.innerHTML = '';
   zipSel.add(new Option('＋ 新增一欄「3+3碼郵遞區號」', -1));
@@ -505,15 +514,14 @@ function selectSheet(i) {
     const label = `${colName(c)} 欄：${String(hdr[c] ?? '').trim() || '(無標題)'}`;
     addrSel.add(new Option(label, c)); zipSel.add(new Option(label, c));
   }
-  // 自動判斷：標題含「地址」或內容像台灣地址的欄位
   let ac = hdr.findIndex(h => /地址|住址|address/i.test(String(h)) && !/英文|english/i.test(String(h)));
   if (ac < 0) {
-    let best = -1, bestN = 0;
+    let bc = -1, bn = 0;
     for (let c = 0; c < width; c++) {
       const n = aoa.slice(headerRow + 1, headerRow + 200).filter(r => r && /[縣市].*(路|街|大道|村|里).*\d/.test(norm(r[c]))).length;
-      if (n > bestN) { bestN = n; best = c; }
+      if (n > bn) { bn = n; bc = c; }
     }
-    ac = best >= 0 ? best : 0;
+    ac = bc >= 0 ? bc : 0;
   }
   const zc = hdr.findIndex(h => /郵遞|郵編|zip|postal/i.test(String(h)));
   addrSel.value = ac; zipSel.value = zc;
@@ -532,17 +540,18 @@ function buildRecords() {
     if (!original) continue;
     const existing = zc >= 0 ? norm(row[zc]).replace(/\D/g, '') : '';
     const qv = queryVariants(original);
-    records.push({ row: i, original, parts: qv.parts, std: qv.variants[0]?.q || '', zip: '', apiZip: '', existing,
-      status: 'pending', note: '', candidates: [] });
+    records.push({ row: i, original, parts: qv.parts, std: qv.variants[0]?.q || '', zip: '', apiZip: '', apiStatus: '', apiNote: '',
+      existing, status: 'pending', note: '', candidates: [] });
   }
   $('btnStart').disabled = !records.length;
-  $('btnDownload').disabled = true;
-  renderTable(); updateCounts();
-  const skip = $('keepExisting').checked ? records.filter(r => /^\d{6}$/.test(r.existing)).length : 0;
-  setStatus(records.length ? `共 ${records.length} 筆地址${skip ? `（其中 ${skip} 筆已有 6 碼，將保留不查）` : ''}，按「開始 6 碼精準補全」即可。` : '地址欄沒有資料，請改選地址欄位。');
-  setProgress(0);
+  renderTable(); updateCounts(); setProgress(0); readyText();
 }
-$('keepExisting').addEventListener('change', () => { if (!running && sheet) buildRecords(); });
+function readyText() {
+  if (!records.length) { setStatus('地址欄沒有資料，請改選地址欄位。'); return; }
+  const skip = $('keepExisting').checked ? records.filter(r => r.status === 'pending' && /^\d{6}$/.test(r.existing)).length : 0;
+  setStatus(`共 ${records.length} 筆地址${skip ? `（其中 ${skip} 筆已有 6 碼，將保留不查）` : ''}，按「開始 6 碼精準補全」即可。`);
+}
+$('keepExisting').addEventListener('change', () => { if (!running && sheet && records.every(r => r.status === 'pending')) readyText(); });
 
 /* ---------- 狀態顯示 ---------- */
 function setStatus(t) { $('statusText').textContent = t; }
@@ -556,13 +565,13 @@ function updateCounts() {
   const n = s => records.filter(r => s.includes(r.status)).length;
   $('cOk').textContent = n(['ok']); $('cReview').textContent = n(['review', 'conflict']);
   $('cManual').textContent = n(['manual']); $('cFail').textContent = n(['fail']);
-  $('btnDownload').disabled = !records.some(r => r.status !== 'pending');
+  $('btnDownload').disabled = running || !records.some(r => r.status !== 'pending');
 }
 function statusHTML(r) {
   const [label, cls] = STATUS[r.status];
   let h = `<span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${cls}">${label}</span>`;
   if (r.status === 'conflict') h += `<div class="mt-1 flex flex-wrap gap-1">${r.candidates.map(c => `<button data-act="pick" data-zip="${c.zip}" class="px-2 py-0.5 rounded border border-amber-400 text-amber-800 text-xs hover:bg-amber-50">採用 ${c.zip}</button>`).join('')}</div>`;
-  if (['fail', 'conflict', 'review'].includes(r.status))
+  if (TODO.includes(r.status))
     h += `<button data-act="lookup" class="mt-1 block w-full px-2 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold">點我打開官方網頁手動補查</button>`;
   if (r.note) h += `<div class="text-[11px] text-slate-500 mt-0.5 leading-snug">${esc(r.note)}</div>`;
   return h;
@@ -570,20 +579,20 @@ function statusHTML(r) {
 function rowHTML(r, i) {
   const bg = r.status === 'fail' ? 'bg-red-50/50' : ['review', 'conflict'].includes(r.status) ? 'bg-amber-50/50' : '';
   return `<tr data-i="${i}" class="border-t border-slate-100 align-top ${bg}">
-    <td class="px-3 py-2 text-slate-400">${r.row + 1}</td>
+    <td class="px-3 py-2 text-slate-400">${(sheet.r0 || 0) + r.row + 1}</td>
     <td class="px-3 py-2">${esc(r.original)}</td>
     <td class="px-3 py-2 text-slate-600">${esc(r.std)}</td>
     <td class="px-3 py-2"><input data-act="zip" class="zip-input w-28 border border-slate-300 rounded-md px-2 py-1 font-mono tracking-wider" value="${esc(r.zip)}" maxlength="6" inputmode="numeric" placeholder="——————"></td>
     <td class="px-3 py-2 w-60">${statusHTML(r)}</td></tr>`;
 }
-function visible(r) { const f = $('filterSel').value; return f === 'all' || (f === 'todo' && ['fail', 'conflict', 'review'].includes(r.status)); }
+function visible(r) { const f = $('filterSel').value; return f === 'all' || (f === 'todo' && TODO.includes(r.status)); }
 function renderTable() {
   const html = records.map((r, i) => visible(r) ? rowHTML(r, i) : '').join('');
   $('tbody').innerHTML = html || `<tr><td colspan="5" class="px-3 py-8 text-center text-slate-400">${records.length ? '沒有需要補查的地址' : '尚無資料'}</td></tr>`;
 }
 function refreshRow(i) {
   const tr = $('tbody').querySelector(`tr[data-i="${i}"]`);
-  if (!visible(records[i])) { if (tr) tr.remove(); return; }
+  if (!visible(records[i])) { if (tr) tr.remove(); if (!$('tbody').querySelector('tr[data-i]')) renderTable(); return; }
   if (!tr) { renderTable(); return; }
   const t = document.createElement('tbody'); t.innerHTML = rowHTML(records[i], i); tr.replaceWith(t.firstElementChild);
 }
@@ -592,14 +601,19 @@ $('filterSel').addEventListener('change', renderTable);
 /* ---------- 表格操作 ---------- */
 function setZip(i, val, fromUser = true) {
   const r = records[i], v = norm(val).replace(/\D/g, '');
-  if (v === '') { r.zip = ''; if (r.status !== 'pending') { r.status = 'fail'; r.note = r.note || '使用者清空'; } }
-  else if (/^\d{6}$/.test(v)) { r.zip = v; r.status = (v === r.apiZip && r.status === 'ok') ? 'ok' : 'manual'; if (r.status === 'manual') r.note = r.apiZip && r.apiZip !== v ? `已覆寫查詢結果 ${r.apiZip}` : '使用者輸入'; }
-  else { if (fromUser) alert('郵遞區號必須是 6 位數字。'); refreshRow(i); return false; }
+  if (v === '') {
+    r.zip = '';
+    if (r.status !== 'pending') { r.status = 'fail'; r.note = '使用者清空'; }
+  } else if (/^\d{6}$/.test(v)) {
+    r.zip = v;
+    if (v === r.apiZip && r.apiStatus) { r.status = r.apiStatus; r.note = r.apiNote; }        // 改回查詢結果時恢復原狀態
+    else { r.status = 'manual'; r.note = r.apiZip ? `已覆寫查詢結果 ${r.apiZip}` : '使用者輸入'; }
+  } else { if (fromUser) alert('郵遞區號必須是 6 位數字。'); refreshRow(i); return false; }
   refreshRow(i); updateCounts(); return true;
 }
 $('tbody').addEventListener('change', e => { if (e.target.dataset.act === 'zip') setZip(+e.target.closest('tr').dataset.i, e.target.value); });
 $('tbody').addEventListener('click', e => {
-  const act = e.target.dataset.act, tr = e.target.closest('tr'); if (!tr) return;
+  const act = e.target.dataset.act, tr = e.target.closest('tr'); if (!act || !tr) return;
   const i = +tr.dataset.i;
   if (act === 'lookup') { window.open(OFFICIAL_URL, '_blank', 'noopener'); showModal(i); }
   if (act === 'pick') setZip(i, e.target.dataset.zip);
@@ -610,7 +624,7 @@ function showModal(i) {
   modalIdx = i; const r = records[i], p = r.parts;
   $('mOrig').textContent = r.original;
   const fields = [['縣市', p.city], ['鄉鎮市區', p.district], ['路街名', p.road + p.section],
-    ['巷／弄', p.lane + p.alley], ['門牌號', p.number], ['完整地址（不含樓層）', p.city + p.district + p.road + p.section + p.lane + p.alley + p.number]];
+    ['巷／弄', p.lane + p.alley], ['門牌號', p.number], ['完整地址（不含樓層）', base(p)]];
   $('mFields').innerHTML = fields.map(([k, v]) => `<div class="flex items-center gap-2">
     <span class="w-36 shrink-0 text-sm text-slate-500">${k}</span>
     <span class="flex-1 px-3 py-1.5 rounded-md bg-slate-50 border border-slate-200 ${v ? 'text-slate-800 font-medium' : 'text-slate-400'}">${v ? esc(v) : '（未辨識）'}</span>
@@ -639,9 +653,9 @@ $('mSave').addEventListener('click', () => { if (saveModal()) closeModal(); });
 $('mZip').addEventListener('keydown', e => { if (e.key === 'Enter') $('mSave').click(); });
 $('mNext').addEventListener('click', () => {
   if ($('mZip').value.trim() && !saveModal()) return;
-  const todo = i => ['fail', 'conflict', 'review'].includes(records[i].status);
-  let n = records.findIndex((r, i) => i > modalIdx && todo(i));
-  if (n < 0) n = records.findIndex((r, i) => todo(i) && i !== modalIdx);
+  const cur = modalIdx;
+  let n = records.findIndex((r, i) => i > cur && TODO.includes(r.status));
+  if (n < 0) n = records.findIndex((r, i) => i !== cur && TODO.includes(r.status));
   if (n < 0) { closeModal(); alert('已沒有需要補查的地址。'); return; }
   showModal(n);
 });
@@ -652,58 +666,66 @@ $('btnStart').addEventListener('click', runBatch);
 
 async function runBatch() {
   const delay = Math.max(1000, +$('delay').value || 2000);
+  $('delay').value = delay;
   const keep = $('keepExisting').checked;
-  const todo = records.map((r, i) => i).filter(i => ['pending', 'fail', 'conflict'].includes(records[i].status) && !(keep && /^\d{6}$/.test(records[i].existing) && records[i].status === 'pending'));
-  for (const r of records) if (keep && /^\d{6}$/.test(r.existing) && r.status === 'pending') { r.zip = r.existing; r.status = 'ok'; r.note = '原檔已有 6 碼，保留'; }
+  for (const r of records) if (keep && r.status === 'pending' && /^\d{6}$/.test(r.existing)) {
+    r.zip = r.existing; r.apiZip = r.existing; r.status = r.apiStatus = 'ok'; r.note = r.apiNote = '原檔已有 6 碼，保留';
+  }
+  const todo = records.map((r, i) => i).filter(i => ['pending', 'fail', 'conflict'].includes(records[i].status));
   renderTable(); updateCounts();
-  if (!todo.length) { setStatus('沒有需要查詢的地址。'); return; }
+  if (!todo.length) { setStatus('沒有需要查詢的地址（成功、需覆核與手動補填的不會重查）。'); return; }
 
   running = true; stopFlag = false;
-  ['btnStart', 'colSelect', 'zipColSelect', 'sheetSel'].forEach(id => $(id).disabled = true);
+  ['btnStart', 'colSelect', 'zipColSelect', 'sheetSel', 'btnDownload'].forEach(id => $(id).disabled = true);
   $('btnStop').disabled = false;
   const ctx = { sources: ['zip5', 'ziptw'], disabled: new Set(), wait: () => sleep(delay) };
   const cache = new Map(); const t0 = Date.now(); let limitHit = false;
   log(`開始查詢 ${todo.length} 筆（來源：zip5.5432.tw + ziptw.com，每次查詢間隔 ${delay} 毫秒）`, 'text-sky-300');
 
-  for (let k = 0; k < todo.length; k++) {
-    if (stopFlag) { log(`已停止，完成 ${k} 筆。`, 'text-amber-300'); break; }
-    const i = todo[k], r = records[i];
-    const eta = k ? Math.round((Date.now() - t0) / k * (todo.length - k) / 1000) : null;
-    setStatus(`查詢中 ${k + 1} / ${todo.length}：第 ${r.row + 1} 列${eta != null ? `（約剩 ${eta >= 60 ? Math.ceil(eta / 60) + ' 分鐘' : eta + ' 秒'}）` : ''}`);
-    const key = r.std;
-    let res = cache.get(key);
-    if (res) res = { ...res, note: res.note + '（重複地址，沿用）' };
-    else {
-      const before = new Set(ctx.disabled);
-      res = await lookupOne(r.original, ctx);
-      for (const s of ctx.disabled) if (!before.has(s)) log(`${SOURCES[s].label} 已達每日查詢上限，後續改用其他來源。`, 'text-amber-300');
-      cache.set(key, res);
+  try {
+    for (let k = 0; k < todo.length; k++) {
+      if (stopFlag) { log(`已停止，完成 ${k} 筆。`, 'text-amber-300'); break; }
+      const i = todo[k], r = records[i];
+      const eta = k ? Math.round((Date.now() - t0) / k * (todo.length - k) / 1000) : null;
+      setStatus(`查詢中 ${k + 1} / ${todo.length}：第 ${(sheet.r0 || 0) + r.row + 1} 列${eta != null ? `（約剩 ${eta >= 60 ? Math.ceil(eta / 60) + ' 分鐘' : eta + ' 秒'}）` : ''}`);
+      const key = queryVariants(r.original).variants.map(v => v.q).join('|');
+      let res = cache.get(key);
+      if (res) res = { ...res, note: res.note + '（重複地址，沿用）' };
+      else {
+        const before = new Set(ctx.disabled);
+        res = await lookupOne(r.original, ctx);
+        for (const s of ctx.disabled) if (!before.has(s)) log(`${SOURCES[s].label} 已達每日查詢上限，後續改用另一個來源。`, 'text-amber-300');
+        if (res.status !== 'fail' || !/上限|連線失敗|逾時/.test(res.note)) cache.set(key, res);
+      }
+      r.std = res.query || r.std; r.zip = res.zip; r.apiZip = res.zip; r.status = r.apiStatus = res.status;
+      r.note = res.note; r.candidates = res.candidates;
+      if (r.existing.length === 6 && res.zip && r.existing !== res.zip) r.note += `｜原檔郵遞區號 ${r.existing} 與查詢結果不同`;
+      r.apiNote = r.note;
+      log(`第 ${(sheet.r0 || 0) + r.row + 1} 列 ${r.original} → ${r.zip || '查無'}｜${r.note}`,
+        { ok: 'text-emerald-300', review: 'text-amber-300', conflict: 'text-amber-300', fail: 'text-red-300' }[r.status]);
+      refreshRow(i); updateCounts(); setProgress((k + 1) / todo.length);
+      if (ctx.sources.every(s => ctx.disabled.has(s))) { limitHit = true; log('所有查詢來源皆已達每日上限，請明天再按「開始」繼續（已完成的不會重查），或使用官方網頁補查。', 'text-red-300'); break; }
     }
-    r.std = res.query || r.std; r.zip = res.zip; r.apiZip = res.zip; r.status = res.status; r.note = res.note; r.candidates = res.candidates;
-    if (r.existing && res.zip && r.existing !== res.zip && r.existing.length === 6) r.note += `｜原檔郵遞區號 ${r.existing} 與查詢結果不同`;
-    log(`第 ${r.row + 1} 列 ${r.original} → ${r.zip || '查無'}｜${r.note}`,
-      { ok: 'text-emerald-300', review: 'text-amber-300', conflict: 'text-amber-300', fail: 'text-red-300' }[r.status]);
-    refreshRow(i); updateCounts(); setProgress((k + 1) / todo.length);
-    if (ctx.sources.every(s => ctx.disabled.has(s))) { limitHit = true; log('所有查詢來源皆已達每日上限，請明天再按「開始」繼續（已完成的不會重查），或使用官方網頁補查。', 'text-red-300'); break; }
+  } catch (e) {
+    log('發生未預期錯誤：' + e.message, 'text-red-300');
+  } finally {
+    running = false;
+    ['btnStart', 'colSelect', 'zipColSelect', 'sheetSel'].forEach(id => $(id).disabled = false);
+    $('btnStop').disabled = true;
+    const c = s => records.filter(r => s.includes(r.status)).length, left = c(['pending']);
+    setStatus((limitHit ? `查詢來源已達每日上限，暫停（尚有 ${left} 筆未查，明天再按「開始」可接續）。目前：` : stopFlag ? `已停止（尚有 ${left} 筆未查，再按「開始」可接續）。目前：` : '完成：')
+      + `成功 ${c(['ok'])} 筆、需覆核 ${c(['review', 'conflict'])} 筆、查無結果 ${c(['fail'])} 筆。` + (c(TODO) ? '可在表格中點藍色按鈕到官方網頁補查。' : ''));
+    updateCounts();
   }
-
-  running = false;
-  ['btnStart', 'colSelect', 'zipColSelect', 'sheetSel'].forEach(id => $(id).disabled = false);
-  $('btnStop').disabled = true;
-  const c = s => records.filter(r => s.includes(r.status)).length;
-  const left = c(['pending']);
-  setStatus((limitHit ? `查詢來源已達每日上限，暫停（尚有 ${left} 筆未查，明天再按「開始」可接續）。目前：` : stopFlag ? `已停止（尚有 ${left} 筆未查，再按「開始」可接續）。目前：` : '完成：') + `成功 ${c(['ok'])} 筆、需覆核 ${c(['review', 'conflict'])} 筆、查無結果 ${c(['fail'])} 筆。` + (c(['fail', 'conflict', 'review']) ? '可在表格中點藍色按鈕到官方網頁補查。' : ''));
-  updateCounts();
 }
 
 /* ---------- 匯出 ---------- */
 function buildEdits() {
-  // 先收下輸入框中尚未觸發 change 的修改
-  document.querySelectorAll('#tbody input[data-act="zip"]').forEach(inp => {
+  document.querySelectorAll('#tbody input[data-act="zip"]').forEach(inp => {          // 收下尚未觸發 change 的修改
     const i = +inp.closest('tr').dataset.i;
     if (norm(inp.value).replace(/\D/g, '') !== records[i].zip) setZip(i, inp.value, false);
   });
-  const aoa = sheet.aoa, width = Math.max(...aoa.map(r => r ? r.length : 0));
+  const aoa = sheet.aoa, width = Math.max(1, ...aoa.map(r => r ? r.length : 0));
   let zc = +$('zipColSelect').value, next = width;
   const edits = new Map(), set = (r, c, v) => { if (!edits.has(r)) edits.set(r, new Map()); edits.get(r).set(c, v); };
   if (zc < 0) { zc = next++; set(headerRow, zc, '3+3碼郵遞區號'); }
@@ -722,13 +744,14 @@ $('btnDownload').addEventListener('click', async () => {
     const edits = buildEdits();
     const baseName = fileName.replace(/\.[^.]+$/, '');
     if (book.kind === 'ooxml') {
-      const ext = (fileName.match(/\.(xlsm|xltm)$/i) ? 'xlsm' : 'xlsx');
+      const ext = /\.(xlsm|xltm)$/i.test(fileName) ? 'xlsm' : 'xlsx';
       download(await writeXlsxPatched(book, sheet.path, edits, headerRow), `${baseName}_3+3郵遞區號.${ext}`);
     } else {
       const ws = book.wb.Sheets[sheet.name];
       const o = XLSX.utils.decode_range(ws['!ref'] || 'A1').s;     // sheet_to_json 的列欄由使用範圍左上角起算
       for (const [r0, cols] of edits) for (const [c0, v] of cols) {
-        const r = r0 + o.r, c = c0 + o.c, ref = XLSX.utils.encode_cell({ r, c }); ws[ref] = { t: 's', v: String(v) };
+        const r = r0 + o.r, c = c0 + o.c, ref = XLSX.utils.encode_cell({ r, c });
+        ws[ref] = { t: 's', v: String(v) };
         const rg = XLSX.utils.decode_range(ws['!ref'] || 'A1'); rg.e.r = Math.max(rg.e.r, r); rg.e.c = Math.max(rg.e.c, c); ws['!ref'] = XLSX.utils.encode_range(rg);
       }
       XLSX.writeFile(book.wb, `${baseName}_3+3郵遞區號.xlsx`);
